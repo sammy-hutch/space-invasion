@@ -15,7 +15,7 @@ extends Node2D
 @export var fr_iterations: int = 200
 @export var fr_initial_temperature: float = 300.0
 @export var cooling_rate: float = 0.99
-@export var fr__k_factor: float = 0.5
+@export var fr_k_factor: float = 0.5
 @export var fr_max_displacement_limit: float = 50.0
 @export var fr_boundary_padding: float = 50.0
 
@@ -30,6 +30,12 @@ var current_temperature: float
 var current_iteration: int = 0
 var is_layout_running: bool = false
 var internal_zone_ids: Array = []
+
+# Tuning Tips for FR Parameters
+# - fr_k_factor: higher = wider node spacing, lower = tighter packed nodes. good heuristic: k = sqrt(ViewportArea / NumberOfNodes)
+# - fr_initial_temperature: higher = better overall result, lower = faster settling
+# - fr_cooling_rate: higher = more iterations but takes longer. range perhaps 0.98 to 0.995
+# - fr_iterations: need upper bound to prevent infinite loops
 
 
 # Called when the node enters the scene tree for the first time.
@@ -141,6 +147,116 @@ func start_fr_layout():
 	is_layout_running = true
 	print("FR layout started for %d zones." % internal_zone_ids.size())
 
+
+func run_fr_iteration():
+	# Exit if complete
+	if current_iteration >= fr_iterations or current_temperature <= 0.1:
+		print("FR layout finished after %d iterations. Final temperature: %f" % [current_iteration, current_temperature])
+		is_layout_running = false
+		centre_layout_on_screen()
+		update_line_positions()
+		return
+	
+	for zone_id in internal_zone_ids:
+		zone_displacements[zone_id] = Vector2.ZERO
+	
+	# Repulsion calcs
+	for i in range(internal_zone_ids.size()):
+		var u_id = internal_zone_ids[i]
+		for j in range(i+1, internal_zone_ids.size()):
+			var v_id = internal_zone_ids[j]
+			var p_u = zone_positions[u_id]
+			var p_v = zone_positions[v_id]
+
+			var delta = p_u - p_v
+			var distance = max(0.001, delta.length())
+			var force_magnitude = (fr_k_factor * fr_k_factor) / distance
+			var force_vector = delta.normalized() * force_magnitude
+
+			zone_displacements[u_id] += force_vector
+			zone_displacements[v_id] -= force_vector
+	
+	# Attraction calcs
+	for u_id in internal_zone_ids:
+		var connections = map_data[u_id]["connections"]
+		for v_id in connections:
+			if not internal_zone_ids.has(v_id):
+				continue
+			
+			var p_u = zone_positions[u_id]
+			var p_v = zone_positions[v_id]
+
+			var delta = p_u - p_v
+			var distance = max(0.001, delta.length())
+			var force_magnitude = (distance * distance) / fr_k_factor
+			var force_vector = delta.normalized() * force_magnitude
+
+			zone_displacements[u_id] -= force_vector
+			zone_displacements[v_id] += force_vector
+	
+	# Positioning
+	var viewport_rect = get_viewport_rect()
+	for zone_id in internal_zone_ids:
+		var displacement = zone_displacements[zone_id]
+		var disp_length = displacement.length()
+
+		var actual_displacement = displacement.normalized() * min(disp_length, current_temperature, fr_max_displacement_limit)
+		zone_positions[zone_id] += actual_displacement
+		zone_positions[zone_id].x = clamp(zone_positions[zone_id].x, fr_boundary_padding, viewport_rect.size.x - fr_boundary_padding)
+		zone_positions[zone_id].y = clamp(zone_positions[zone_id].y, fr_boundary_padding, viewport_rect.size.y - fr_boundary_padding)
+
+		zone_nodes[zone_id].position = zone_positions[zone_id]
+	
+	# Cooldown
+	current_temperature *= fr_cooling_rate
+	current_iteration += 1
+
+
+func update_line_positions():
+	for zone_id in internal_zone_ids:
+		var node = zone_nodes[zone_id]
+		if node.has_meta("connections"):
+			var connections_data = node.get_meta("connections")
+			for conn in connections_data:
+				var line: Line2D = conn["line"]
+				var target_id = conn["target"]
+				if internal_zone_ids.has(target_id): 
+					var target_node = zone_nodes[target_id]
+					line.set_point_position(0, node.position)
+					line.set_point_position(1, target_node.position)
+				else:
+					line.visible = false
+
+
+func center_layout_on_screen():
+	if internal_zone_ids.is_empty():
+		return
+	
+	var min_x = INF
+	var max_x = -INF
+	var min_y = INF
+	var max_y = -INF
+
+	for zone_id in internal_zone_ids:
+		var pos = zone_positions[zone_id]
+		min_x = min(min_x, pos.x)
+		max_x = max(max_x, pos.x)
+		min_y = min(min_y, pos.y)
+		max_y = max(max_y, pos.y)
+	
+	var graph_center = Vector2((min_x + max_x) / 2, (min_y + max_y) / 2)
+	var viewport_center = get_viewport_rect().size / 2
+	var offset = viewport_center - graph_center
+
+	for zone_id in internal_zone_ids:
+		zone_positions[zone_id] += offset
+		zone_nodes[zone_id].position = zone_positions[zone_id]
+	
+	var viewport_rect = get_viewport_rect()
+	for zone_id in internal_zone_ids:
+		zone_positions[zone_id].x = clamp(zone_positions[zone_id].x, fr_boundary_padding, viewportrect.size.x - fr_boundary_padding)
+		zone_positions[zone_id].y = clamp(zone_positions[zone_id].y, fr_boundary_padding, viewportrect.size.y - fr_boundary_padding)
+		zone_nodes[zone_id].position = zone_positions[zone_id]
 
 
 # func generate_map():
