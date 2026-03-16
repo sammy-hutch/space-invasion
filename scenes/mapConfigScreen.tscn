@@ -1,0 +1,66 @@
+[gd_scene load_steps=2 format=3 uid="uid://dvjuf2lyy4yo6"]
+
+[ext_resource type="Script" uid="uid://cqg6lkvdin5kw" path="res://scripts/ui/map_config_screen.gd" id="1_dlrev"]
+
+[node name="MapConfigScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_dlrev")
+
+[node name="MainVBox" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_constants/separation = 10
+
+[node name="TopSectionHBox" type="HBoxContainer" parent="MainVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SectorSelectionPanel" type="VBoxContainer" parent="MainVBox/TopSectionHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="MainVBox/TopSectionHBox/SectorSelectionPanel"]
+layout_mode = 2
+text = "Available Sectors"
+
+[node name="SectorSelectionList" type="ItemList" parent="MainVBox/TopSectionHBox/SectorSelectionPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VSeparator" type="VSeparator" parent="MainVBox/TopSectionHBox"]
+layout_mode = 2
+
+[node name="MapLayoutPanel" type="VBoxContainer" parent="MainVBox/TopSectionHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="MainVBox/TopSectionHBox/MapLayoutPanel"]
+layout_mode = 2
+text = "Map Layout (Click to Place/Remove)"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MainVBox/TopSectionHBox/MapLayoutPanel"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="BottomButtonsHBox" type="HBoxContainer" parent="MainVBox"]
+layout_mode = 2
+size_flags_vertical = 8
+
+[node name="ClearMapButton" type="Button" parent="MainVBox/BottomButtonsHBox"]
+layout_mode = 2
+text = "Clear Map"
+
+[node name="Spacer" type="Control" parent="MainVBox/BottomButtonsHBox"]
+layout_mode = 2
+size_flags_vertical = 8
+
+[node name="GenerateMapButton" type="Button" parent="MainVBox/BottomButtonsHBox"]
+layout_mode = 2
+text = "Generate Map"

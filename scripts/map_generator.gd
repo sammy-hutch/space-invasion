@@ -1,7 +1,7 @@
 extends Node2D
 
 @export_file("*.json") var map_data_path: String
-@export var zone_radius: float = 30.0
+@export var zone_radius: float = 50.0
 @export var line_width: float = 2.0
 @export var zone_color: Color = Color.CORNFLOWER_BLUE
 @export var line_color: Color = Color.WHITE
@@ -14,8 +14,8 @@ extends Node2D
 @export_group("FR Layout Parameters")
 @export var fr_iterations: int = 200
 @export var fr_initial_temperature: float = 300.0
-@export var cooling_rate: float = 0.99
-@export var fr_k_factor: float = 0.5
+@export var fr_cooling_rate: float = 0.99
+@export var fr_k_factor: float = 175.0
 @export var fr_max_displacement_limit: float = 50.0
 @export var fr_boundary_padding: float = 50.0
 
@@ -153,7 +153,7 @@ func run_fr_iteration():
 	if current_iteration >= fr_iterations or current_temperature <= 0.1:
 		print("FR layout finished after %d iterations. Final temperature: %f" % [current_iteration, current_temperature])
 		is_layout_running = false
-		centre_layout_on_screen()
+		center_layout_on_screen()
 		update_line_positions()
 		return
 	
@@ -254,67 +254,6 @@ func center_layout_on_screen():
 	
 	var viewport_rect = get_viewport_rect()
 	for zone_id in internal_zone_ids:
-		zone_positions[zone_id].x = clamp(zone_positions[zone_id].x, fr_boundary_padding, viewportrect.size.x - fr_boundary_padding)
-		zone_positions[zone_id].y = clamp(zone_positions[zone_id].y, fr_boundary_padding, viewportrect.size.y - fr_boundary_padding)
+		zone_positions[zone_id].x = clamp(zone_positions[zone_id].x, fr_boundary_padding, viewport_rect.size.x - fr_boundary_padding)
+		zone_positions[zone_id].y = clamp(zone_positions[zone_id].y, fr_boundary_padding, viewport_rect.size.y - fr_boundary_padding)
 		zone_nodes[zone_id].position = zone_positions[zone_id]
-
-
-# func generate_map():
-# 	for child in get_children():
-# 		child.queue_free()
-# 	zone_nodes.clear()
-	
-# 	# 1. Create and position zone nodes
-# 	var zone_ids = map_data.keys()
-# 	zone_ids.sort()
-# 	var num_zones = zone_ids.size()
-# 	var angle_step = TAU / num_zones
-	
-# 	for i in range(num_zones):
-# 		var zone_id = zone_ids[i]
-# 		var zone_node = Node2D.new()
-# 		zone_node.set_script(ZoneNodeScript)
-# 		add_child(zone_node)
-# 		zone_nodes[zone_id] = zone_node
-		
-# 		zone_node.setup(zone_id, zone_radius, zone_color, zone_label_color, zone_font, zone_font_size)
-		
-# 		var angle = i * angle_step
-# 		zone_node.position = Vector2(cos(angle), sin(angle)) * layout_radius + get_viewport_rect().size / 2
-		
-# 	# 2. Create connection lines
-# 	var drawn_connections = {}
-# 	for zone_id in map_data:
-# 		var current_zone_node = zone_nodes[zone_id]
-# 		var connections = map_data[zone_id]["connections"]
-		
-# 		for connected_zone_id in connections:
-# 			if not zone_nodes.has(connected_zone_id):
-# 				print("Skipping external connection '%s' from zone '%s'." % [connected_zone_id, zone_id])
-# 				continue
-			
-# 			var target_zone_node = zone_nodes[connected_zone_id]
-			
-# 			var id1 = str(zone_id)
-# 			var id2 = str(connected_zone_id)
-# 			var connection_key = ""
-# 			if id1 < id2:
-# 				connection_key = "%s_%s" % [id1, id2]
-# 			else:
-# 				connection_key = "%s_%s" % [id2, id1]
-			
-# 			if connection_key in drawn_connections:
-# 				continue
-# 			drawn_connections[connection_key] = true
-			
-# 			var line = Line2D.new()
-# 			line.add_point(current_zone_node.position)
-# 			line.add_point(target_zone_node.position)
-# 			line.width = line_width
-# 			line.default_color = line_color
-# 			add_child(line)
-	
-# 	# 3. Adjust drawing order
-# 	for child in get_children():
-# 		if child is Line2D:
-# 			move_child(child, 0)

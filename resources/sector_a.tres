@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="SectorData" load_steps=2 format=3 uid="uid://bjqejsdgkp464"]
+
+[ext_resource type="Script" uid="uid://h7bh5bnqtn28" path="res://scripts/sector_data.gd" id="1_eqehn"]
+
+[resource]
+script = ExtResource("1_eqehn")
+sector_name = "Sector A"
+sector_scene_path = "uid://vi5m5hg1rb4n"
+metadata/_custom_type_script = "uid://h7bh5bnqtn28"
