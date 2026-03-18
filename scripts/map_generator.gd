@@ -1,4 +1,7 @@
 extends Node2D
+class_name MapGenerator
+
+signal map_generated(current_iteration: int)
 
 @export_file("*.json") var map_data_path: String
 @export var zone_radius: float = 50.0
@@ -40,6 +43,11 @@ var internal_zone_ids: Array = []
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	pass
+
+
+func generate_map_from_config(map_layout: Dictionary):
+	print("MapGenerator: Starting map generation with custom config...")
 	if map_data_path:
 		load_map_data()
 		if map_data:
@@ -52,8 +60,8 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if is_layout_running:
 		run_fr_iteration()
-		update_line_positions()
-		center_layout_on_screen()
+		update_line_positions() # remove this later
+		center_layout_on_screen() # remove this later
 
 
 func load_map_data():
@@ -155,6 +163,8 @@ func run_fr_iteration():
 		is_layout_running = false
 		center_layout_on_screen()
 		update_line_positions()
+		map_generated.emit(current_iteration)
+		print("Map Generation emitted. Generation complete.")
 		return
 	
 	for zone_id in internal_zone_ids:
