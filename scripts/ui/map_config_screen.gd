@@ -3,17 +3,17 @@ class_name MapConfigScreen
 
 signal map_configured(map_layout: Dictionary)
 
-@export_dir var available_sectors_directory: String = "res://resources/sectors"
+@export_dir var available_sectors_directory: String = "res://resources/sectors/"
 @export var grid_size: Vector2i = Vector2i(5, 5)
 
 var _available_sector_resources: Array[SectorData] = []
 var _selected_sector_data: SectorData = null
 var _map_layout_data: Dictionary = {}
 
-@onready var sector_selection_list: ItemList = %SectorSelectionList
-@onready var map_layout_grid_container: GridContainer = %MapLayoutgrid
-@onready var clear_map_button: Button = %ClearMapButton
-@onready var generate_map_button: Button = %GenerateMapButton
+@onready var sector_selection_list: ItemList = $MainVBox/TopSectionHBox/SectorSelectionPanel/SectorSelectionList
+@onready var map_layout_grid_container: GridContainer = $MainVBox/TopSectionHBox/MapLayoutPanel/MapLayoutGrid
+@onready var clear_map_button: Button = $MainVBox/BottomButtonsHBox/ClearMapButton
+@onready var generate_map_button: Button = $MainVBox/BottomButtonsHBox/GenerateMapButton
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -35,8 +35,10 @@ func _load_available_sectors():
 		dir.list_dir_begin()
 		var file_name = dir.get_next()
 		while file_name != "":
+			print("file name: ", file_name)
 			if not dir.current_is_dir() and file_name.ends_with(".tres"):
 				var path = available_sectors_directory + file_name
+				print("path: ", path)
 				var resource = ResourceLoader.load(path)
 				if resource is SectorData:
 					_available_sector_resources.append(resource)
@@ -45,16 +47,18 @@ func _load_available_sectors():
 	else:
 		push_error("Could not open directory for sectors: %s" % available_sectors_directory)
 	_available_sector_resources.sort_custom(func(a,b): return a.sector_name < b.sector_name)
+	for i in _available_sector_resources:
+		print("available resource name: ", i.sector_name)
 
 func _setup_sector_selection_list():
-	sector_selection_list.clear()
+	# sector_selection_list.clear()
 	for sector_data in _available_sector_resources:
 		var item_idx = sector_selection_list.add_item(sector_data.sector_name, sector_data.preview_texture)
 
 func _setup_map_layout_grid():
-	for child in map_layout_grid_container.get_children():
-		child.queue_free()
-	_map_layout_data.clear()
+	#for child in map_layout_grid_container.get_children():
+		#child.queue_free()
+	#_map_layout_data.clear()
 	
 	map_layout_grid_container.columns = grid_size.x
 	for y in range(grid_size.y):

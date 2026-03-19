@@ -44,6 +44,9 @@ size_flags_horizontal = 3
 layout_mode = 2
 text = "Map Layout (Click to Place/Remove)"
 
+[node name="MapLayoutGrid" type="GridContainer" parent="MainVBox/TopSectionHBox/MapLayoutPanel"]
+layout_mode = 2
+
 [node name="ScrollContainer" type="ScrollContainer" parent="MainVBox/TopSectionHBox/MapLayoutPanel"]
 layout_mode = 2
 size_flags_horizontal = 4

@@ -16,7 +16,7 @@ signal map_generated(current_iteration: int)
 # Fruchterman-Reingold Layout parameters
 @export_group("FR Layout Parameters")
 @export var fr_iterations: int = 200
-@export var fr_initial_temperature: float = 300.0
+@export var fr_initial_temperature: float = 400.0
 @export var fr_cooling_rate: float = 0.99
 @export var fr_k_factor: float = 175.0
 @export var fr_max_displacement_limit: float = 50.0

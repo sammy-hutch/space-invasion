@@ -9,8 +9,8 @@ var assigned_sector_data: SectorData = null:
 		assigned_sector_data = value
 		update_display()
 
-@onready var sector_name_label: Label = %SectorNameLabel
-@onready var preview_image: TextureRect = %PreviewImage
+@onready var sector_name_label: Label = $MarginContainer/SectorNameLabel
+@onready var preview_image: TextureRect = $MarginContainer/PreviewImage
 
 
 # Called when the node enters the scene tree for the first time.
