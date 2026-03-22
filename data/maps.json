@@ -1,88 +1,94 @@
 {
 	"Sector_A": {
-		"RimA1": {
-			"connections": ["A1", "RimA2"]
-		},
-		"RimA2": {
-			"connections": ["A2", "RimA1", "RimA3"]
-		},
-		"RimA3": {
-			"connections": ["A3", "RimA2"]
-		},
-		"A1": {
-			"connections": ["A2", "A4", "A5", "A6", "RimA1"],
-			"positions": ["NW"]
-		},
-		"A2": {
-			"connections": ["A1", "A3", "A4", "RimA2"],
-			"positions": ["W"]
-		},
-		"A3": {
-			"connections": ["A2", "A4", "RimA3"],
-			"positions": ["SW"]
-		},
-		"A4": {
-			"connections": ["A1", "A2", "A3", "A5"],
-			"positions": ["S"]
-		},
-		"A5": {
-			"connections": ["A1", "A4", "A6", "A7", "A8"],
-			"positions": ["S"]
-		},
-		"A6": {
-			"connections": ["A1", "A5", "A8"],
-			"positions": ["N"]
-		},
-		"A7": {
-			"connections": ["A5", "A8"],
-			"positions": ["E", "SE"]
-		},
-		"A8": {
-			"connections": ["A5", "A6", "A7"],
-			"positions": ["NE"]
+		"sector_Name": "Andromeda",
+		"zones": {
+			"RimA1": {
+				"connections": ["A1", "RimA2"]
+			},
+			"RimA2": {
+				"connections": ["A2", "RimA1", "RimA3"]
+			},
+			"RimA3": {
+				"connections": ["A3", "RimA2"]
+			},
+			"A1": {
+				"connections": ["A2", "A4", "A5", "A6", "RimA1"],
+				"positions": ["NW"]
+			},
+			"A2": {
+				"connections": ["A1", "A3", "A4", "RimA2"],
+				"positions": ["W"]
+			},
+			"A3": {
+				"connections": ["A2", "A4", "RimA3"],
+				"positions": ["SW"]
+			},
+			"A4": {
+				"connections": ["A1", "A2", "A3", "A5"],
+				"positions": ["S"]
+			},
+			"A5": {
+				"connections": ["A1", "A4", "A6", "A7", "A8"],
+				"positions": ["S"]
+			},
+			"A6": {
+				"connections": ["A1", "A5", "A8"],
+				"positions": ["N"]
+			},
+			"A7": {
+				"connections": ["A5", "A8"],
+				"positions": ["E", "SE"]
+			},
+			"A8": {
+				"connections": ["A5", "A6", "A7"],
+				"positions": ["NE"]
+			}
 		}
 	},
 	"Sector_B": {
-		"RimB1": {
-			"connections": ["B1", "RimB2"]
-		},
-		"RimB2": {
-			"connections": ["B2", "RimB1", "RimB3"]
-		},
-		"RimB3": {
-			"connections": ["B3", "RimB2"]
-		},
-		"B1": {
-			"connections": ["B2", "B4", "B5", "B6", "north_west", "RimB1"],
-			"positions": ["NW"]
-		},
-		"B2": {
-			"connections": ["B1", "B3", "B4", "RimB2"],
-			"positions": ["W"]
-		},
-		"B3": {
-			"connections": ["B2", "B4", "south_west", "RimB3"],
-			"positions": ["SW"]
-		},
-		"B4": {
-			"connections": ["B1", "B2", "B3", "B5", "B7", "south"],
-			"positions": ["S"]
-		},
-		"B5": {
-			"connections": ["B1", "B4", "B6", "B7"],
-			"positions": ["C"]
-		},
-		"B6": {
-			"connections": ["B1", "B5", "B7", "B8", "north"],
-			"positions": ["N"]
-		},
-		"B7": {
-			"connections": ["B4", "B5", "B6", "B8", "east"],
-			"positions": ["SE", "E"]
-		},
-		"B8": {
-			"connections": ["B6", "B7", "north_east"],
-			"positions": ["NE"]
+		"sector_name": "Betelgeuse",
+		"zones": {
+			"RimB1": {
+				"connections": ["B1", "RimB2"]
+			},
+			"RimB2": {
+				"connections": ["B2", "RimB1", "RimB3"]
+			},
+			"RimB3": {
+				"connections": ["B3", "RimB2"]
+			},
+			"B1": {
+				"connections": ["B2", "B4", "B5", "B6", "north_west", "RimB1"],
+				"positions": ["NW"]
+			},
+			"B2": {
+				"connections": ["B1", "B3", "B4", "RimB2"],
+				"positions": ["W"]
+			},
+			"B3": {
+				"connections": ["B2", "B4", "south_west", "RimB3"],
+				"positions": ["SW"]
+			},
+			"B4": {
+				"connections": ["B1", "B2", "B3", "B5", "B7", "south"],
+				"positions": ["S"]
+			},
+			"B5": {
+				"connections": ["B1", "B4", "B6", "B7"],
+				"positions": ["C"]
+			},
+			"B6": {
+				"connections": ["B1", "B5", "B7", "B8", "north"],
+				"positions": ["N"]
+			},
+			"B7": {
+				"connections": ["B4", "B5", "B6", "B8", "east"],
+				"positions": ["SE", "E"]
+			},
+			"B8": {
+				"connections": ["B6", "B7", "north_east"],
+				"positions": ["NE"]
+			}
 		}
 	}
 }

@@ -4,8 +4,10 @@ Spirit Island gameplay with a Twilight Imperium Theme
 
 ## TODO
 map_generator.gd:
-- generate_map_from_config() / load_map_data() / start_fr_layot(): need to add new logic to use the map_layout passed from config screen, rather than takign single sector from dictionary
+- generate_map_from_config() / load_map_data() / start_fr_layot(): need to add new logic to use the map_layout passed from config screen, rather than takign single sector from dictionary - try with 4 sectors
 - run generation all as one load step, rather than as part of process
+- pull custom data about zones (colour etc) from maps.json instead of as vars on map_generator script
+- improve Fruchterman-Reingold so nodes & lines don't overlap each other so much (reduce repulsion force, add a minimum distance each node needs to be from each other)
 map_config_screen.gd:
 - how to work with the sector scenes
 - add number of boards item list determines grid size

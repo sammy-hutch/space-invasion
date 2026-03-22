@@ -82,6 +82,7 @@ func load_map_data(map_layout: Dictionary):
 				if parse_result.has(sector_id):
 					map_data[sector_id] = parse_result[sector_id]
 					map_data[sector_id]["grid_pos"] = position
+					map_data[sector_id]["neighbours"] = {}
 					print(map_data[sector_id]["grid_pos"])
 				else:
 					print("no data found for sector id %s in map_data file" % sector_id)
@@ -93,76 +94,114 @@ func load_map_data(map_layout: Dictionary):
 	else: printerr("Failed to open map data file: ", map_data_path)
 
 func configure_map_layout():
-	# identify sector neighbours from map layout
-	for u_sector in map_data:
-		var u_pos = u_sector["grid_pos"]
-		map_data[u_sector]["neighbours"] = {}
-		for v_sector in map_data:
-			var v_pos = v_sector["grid_pos"]
-			if v_pos.x == u_pos.x + 1 and v_pos.y == u_pos.y: map_data[u_sector]["neighbours"]["W"] = v_sector
-			if v_pos.x == u_pos.x - 1 and v_pos.y == u_pos.y: map_data[u_sector]["neighbours"]["E"] = v_sector
-			if v_pos.x == u_pos.x and v_pos.y == u_pos.y + 1: map_data[u_sector]["neighbours"]["S"] = v_sector
-			if v_pos.x == u_pos.x and v_pos.y == u_pos.y - 1: map_data[u_sector]["neighbours"]["N"] = v_sector
-		print("sector: ", u_sector)
-		print("neigbours: ", map_data[u_sector]["neighbours"])
-	
-	# layout logic blocks
+	# --- 1. Identify Sector Neighbours ---
+	print("--- Identifying Sector Neighbours ---")
+	for u_sector_key in map_data:
+		var u_sector_data = map_data[u_sector_key]
+		var u_pos = u_sector_data["grid_pos"]
+
+		for v_sector_key in map_data:
+			if u_sector_key == v_sector_key: continue
+
+			var v_sector_data = map_data[v_sector_key]
+			var v_pos = v_sector_data["grid_pos"]
+
+			if v_pos.x == u_pos.x + 1 and v_pos.y == u_pos.y: u_sector_data["neighbours"]["E"] = v_sector_key
+			elif v_pos.x == u_pos.x - 1 and v_pos.y == u_pos.y: u_sector_data["neighbours"]["W"] = v_sector_key
+			elif v_pos.x == u_pos.x and v_pos.y == u_pos.y + 1: u_sector_data["neighbours"]["S"] = v_sector_key
+			elif v_pos.x == u_pos.x and v_pos.y == u_pos.y - 1: u_sector_data["neighbours"]["N"] = v_sector_key
+
+		print("Sector: ", u_sector_key, " Neighbours: ", u_sector_data["neighbours"])
+
+	# --- 2. Apply Layout Logic (Rotation) ---
+	print("\n--- Applying Layout Logic (Rotation) ---")
 	if map_style == "standard":
-		for u_sector in map_data:
-			if u_sector["neighbours"]["E"]:
-				rotate_sector(u_sector, "W")
+		for u_sector_key in map_data:
+			var u_sector_data = map_data[u_sector_key]
+			if "W" in u_sector_data["neighbours"]:
+				print("Rotating Sector ", u_sector_key, " 180 degrees due to East neighbour.")
+				rotate_sector(u_sector_key)
 	elif map_style == "frontier":
 		pass # TODO: add logic for other types
-	
-	# identify connections across sectors
-	for u_sector in map_data:
-		for v_sector in map_data:
-			if u_sector["neighbours"]["E"] == v_sector:
-				for u_zone in map_data[u_sector]:
-					for v_zone in map_data[v_sector]:
-						for u_pos in map_data[u_sector][u_zone]["positions"]:
-							for v_pos in map_data[v_sector][v_zone]["positions"]:
-								if u_pos == "NW" and v_pos == "NE": map_data[u_sector][u_zone]["connections"].add(v_zone)
-								if u_pos == "W"  and v_pos == "E" : map_data[u_sector][u_zone]["connections"].add(v_zone)
-								if u_pos == "SW" and v_pos == "SE": map_data[u_sector][u_zone]["connections"].add(v_zone)
-			if u_sector["neighbours"]["W"] == v_sector:
-				for u_zone in map_data[u_sector]:
-					for v_zone in map_data[v_sector]:
-						for u_pos in map_data[u_sector][u_zone]["positions"]:
-							for v_pos in map_data[v_sector][v_zone]["positions"]:
-								if u_pos == "NE" and v_pos == "NW": map_data[u_sector][u_zone]["connections"].add(v_zone)
-								if u_pos == "E"  and v_pos == "W" : map_data[u_sector][u_zone]["connections"].add(v_zone)
-								if u_pos == "SE" and v_pos == "SW": map_data[u_sector][u_zone]["connections"].add(v_zone)
-			if u_sector["neighbours"]["N"] == v_sector:
-				for u_zone in map_data[u_sector]:
-					for v_zone in map_data[v_sector]:
-						for u_pos in map_data[u_sector][u_zone]["positions"]:
-							for v_pos in map_data[v_sector][v_zone]["positions"]:
-								if u_pos == "SE" and v_pos == "NE": map_data[u_sector][u_zone]["connections"].add(v_zone)
-								if u_pos == "S"  and v_pos == "N" : map_data[u_sector][u_zone]["connections"].add(v_zone)
-								if u_pos == "SW" and v_pos == "NW": map_data[u_sector][u_zone]["connections"].add(v_zone)
-			if u_sector["neighbours"]["S"] == v_sector:
-				for u_zone in map_data[u_sector]:
-					for v_zone in map_data[v_sector]:
-						for u_pos in map_data[u_sector][u_zone]["positions"]:
-							for v_pos in map_data[v_sector][v_zone]["positions"]:
-								if u_pos == "NE" and v_pos == "SE": map_data[u_sector][u_zone]["connections"].add(v_zone)
-								if u_pos == "N"  and v_pos == "S" : map_data[u_sector][u_zone]["connections"].add(v_zone)
-								if u_pos == "NW" and v_pos == "SW": map_data[u_sector][u_zone]["connections"].add(v_zone)
-		
 
-func rotate_sector(sector, direction):
-	for zone in map_data[sector]:
-		for pos in zone["positions"]:
-			if direction == "W": # flip to opposite positions
-				if pos == "N": map_data[sector][zone][pos] = "S"
-				if pos == "NE": map_data[sector][zone][pos] = "SW"
-				if pos == "E": map_data[sector][zone][pos] = "W"
-				if pos == "SE": map_data[sector][zone][pos] = "NW"
-				if pos == "S": map_data[sector][zone][pos] = "N"
-				if pos == "SW": map_data[sector][zone][pos] = "NE"
-				if pos == "W": map_data[sector][zone][pos] = "E"
-				if pos == "NW": map_data[sector][zone][pos] = "SE"
+	# --- 3. Identify Connections Across Sectors ---
+	print("\n--- Identifying Connections Across Sectors ---")
+	var border_connection_rules = {
+		"E": {  # If v_sector is East of u_sector
+			"NE": "NW", # u's NW connects to v's NE
+			"E":  "W",  # u's W connects to v's E
+			"SE": "SW"   # u's SW connects to v's SE
+		},
+		"W": {  # If v_sector is West of u_sector
+			"NW": "NE",
+			"W":  "E",
+			"SW": "SE"
+		},
+		"N": {  # If v_sector is North of u_sector
+			"NE": "SE",
+			"N":  "S",
+			"NW": "SW"
+		},
+		"S": {  # If v_sector is South of u_sector
+			"SE": "NE",
+			"S":  "N",
+			"SW": "NW"
+		}
+	}
+
+	for u_sector_key in map_data:
+		var u_sector_data = map_data[u_sector_key]
+
+		for neighbour_direction in u_sector_data["neighbours"]:
+			var v_sector_key = u_sector_data["neighbours"][neighbour_direction]
+			var v_sector_data = map_data[v_sector_key]
+
+			var rules_for_this_border = border_connection_rules[neighbour_direction]
+
+			# Iterate through all zones in u_sector
+			for u_zone_key in u_sector_data["zones"]:
+				var u_zone_data = u_sector_data["zones"][u_zone_key]
+				if not ("positions" in u_zone_data): continue
+
+				var u_zone_positions = u_zone_data["positions"]
+
+				# Iterate through all zones in v_sector
+				for v_zone_key in v_sector_data["zones"]:
+					var v_zone_data = v_sector_data["zones"][v_zone_key]
+					if not ("positions" in v_zone_data): continue
+
+					var v_zone_positions = v_zone_data["positions"]
+
+					# Check for matching positions based on rules
+					for u_pos in u_zone_positions:
+						for v_pos in v_zone_positions:
+							if rules_for_this_border.has(u_pos) and rules_for_this_border[u_pos] == v_pos:
+								if not v_zone_key in u_zone_data["connections"]:
+									u_zone_data["connections"].append(v_zone_key)
+								# Optional: If connections are bidirectional, add the reverse
+								# if not u_zone_key in v_zone_data["connections"]:
+								#	v_zone_data["connections"].append(u_zone_key)
+								print("  Connection found: ", u_sector_key, ":", u_zone_key, "(", u_pos, ") <-> ", v_sector_key, ":", v_zone_key, "(", v_pos, ")")
+
+func rotate_sector(sector_key: String):
+	# This function performs a 180-degree rotation (N<->S, E<->W, etc.)
+	var sector_data = map_data[sector_key]
+	var rotation_map = {
+		"N": "S", "NE": "SW", "E": "W", "SE": "NW",
+		"S": "N", "SW": "NE", "W": "E", "NW": "SE",
+		"C": "C" # Center position often remains unchanged
+	}
+
+	for zone_key in sector_data["zones"]:
+		var zone_data = sector_data["zones"][zone_key]
+		if "positions" in zone_data:
+			var new_positions = []
+			for original_pos in zone_data["positions"]:
+				if rotation_map.has(original_pos):
+					new_positions.append(rotation_map[original_pos])
+				else:
+					new_positions.append(original_pos)
+			zone_data["positions"] = new_positions
 
 func start_fr_layout():
 	for child in get_children():
@@ -189,9 +228,9 @@ func start_fr_layout():
 			sector_node.setup(sector_id_str, sector_color, sector_label_color, sector_font, sector_font_size)
 
 			var sector_data = map_data[sector_id_str]
-			var zone_ids = sector_data.keys()
+			var zone_ids = sector_data["zones"].keys()
 			for zone_id_str in zone_ids:
-				if sector_data.has(zone_id_str) and typeof(sector_data[zone_id_str]) == TYPE_DICTIONARY:
+				if sector_data["zones"].has(zone_id_str) and typeof(sector_data["zones"][zone_id_str]) == TYPE_DICTIONARY:
 					internal_zone_ids.append(zone_id_str)
 					
 					var zone_node = Node2D.new()
@@ -214,8 +253,8 @@ func start_fr_layout():
 	# 2. Create Line2D nodes
 	var drawn_connections = {}
 	for sector_id in map_data:
-		for zone_id in map_data[sector_id]:
-			var connections = map_data[sector_id][zone_id]["connections"]
+		for zone_id in map_data[sector_id]["zones"]:
+			var connections = map_data[sector_id]["zones"][zone_id]["connections"]
 			for connected_zone_id in connections:
 				if not internal_zone_ids.has(zone_id) or not internal_zone_ids.has(connected_zone_id):
 					print("Skipping external connection '%s' from zone '%s'." % [connected_zone_id, zone_id])
@@ -289,8 +328,8 @@ func run_fr_iteration():
 
 	# Attraction calculations
 	for sector_id in map_data:
-		for u_id in map_data[sector_id]:
-			var connections = map_data[sector_id][u_id]["connections"]
+		for u_id in map_data[sector_id]["zones"]:
+			var connections = map_data[sector_id]["zones"][u_id]["connections"]
 			for v_id in connections:
 				if not internal_zone_ids.has(v_id):
 					continue
@@ -326,7 +365,7 @@ func _update_sector_positions_and_zone_relatives():
 		var sector_node = sector_nodes[sector_id]
 		var zones_in_sector_positions = []
 		
-		for zone_id in map_data[sector_id].keys():
+		for zone_id in map_data[sector_id]["zones"].keys():
 			if internal_zone_ids.has(zone_id):
 				zones_in_sector_positions.append(zone_positions[zone_id])
 		
