@@ -58,7 +58,7 @@
 				"connections": ["B3", "RimB2"]
 			},
 			"B1": {
-				"connections": ["B2", "B4", "B5", "B6", "north_west", "RimB1"],
+				"connections": ["B2", "B4", "B5", "B6", "RimB1"],
 				"positions": ["NW"]
 			},
 			"B2": {
@@ -66,11 +66,11 @@
 				"positions": ["W"]
 			},
 			"B3": {
-				"connections": ["B2", "B4", "south_west", "RimB3"],
+				"connections": ["B2", "B4", "RimB3"],
 				"positions": ["SW"]
 			},
 			"B4": {
-				"connections": ["B1", "B2", "B3", "B5", "B7", "south"],
+				"connections": ["B1", "B2", "B3", "B5", "B7"],
 				"positions": ["S"]
 			},
 			"B5": {
@@ -78,15 +78,107 @@
 				"positions": ["C"]
 			},
 			"B6": {
-				"connections": ["B1", "B5", "B7", "B8", "north"],
+				"connections": ["B1", "B5", "B7", "B8"],
 				"positions": ["N"]
 			},
 			"B7": {
-				"connections": ["B4", "B5", "B6", "B8", "east"],
+				"connections": ["B4", "B5", "B6", "B8"],
 				"positions": ["SE", "E"]
 			},
 			"B8": {
-				"connections": ["B6", "B7", "north_east"],
+				"connections": ["B6", "B7"],
+				"positions": ["NE"]
+			}
+		}
+	},
+	"Sector_C": {
+		"sector_name": "Centauri",
+		"zones": {
+			"RimC1": {
+				"connections": ["C1", "RimC2"]
+			},
+			"RimC2": {
+				"connections": ["C2", "RimC1", "RimC3"]
+			},
+			"RimC3": {
+				"connections": ["C3", "RimC2"]
+			},
+			"C1": {
+				"connections": ["C2", "C5", "C6", "RimC1"],
+				"positions": ["NW"]
+			},
+			"C2": {
+				"connections": ["C1", "C3", "C4", "C5", "RimC2"],
+				"positions": ["W"]
+			},
+			"C3": {
+				"connections": ["C2", "C4", "RimC3"],
+				"positions": ["SW"]
+			},
+			"C4": {
+				"connections": ["C2", "C3", "C5", "C7"],
+				"positions": ["S", "SE"]
+			},
+			"C5": {
+				"connections": ["C1", "C2", "C3", "C4", "C6", "C7"],
+				"positions": ["C"]
+			},
+			"C6": {
+				"connections": ["C1", "C5", "C7", "C8"],
+				"positions": ["N"]
+			},
+			"C7": {
+				"connections": ["C4", "C5", "C6", "C8"],
+				"positions": ["E"]
+			},
+			"C8": {
+				"connections": ["C6", "C7"],
+				"positions": ["NE"]
+			}
+		}
+	},
+	"Sector_D": {
+		"sector_name": "Diadem",
+		"zones": {
+			"RimD1": {
+				"connections": ["D1", "RimD2"]
+			},
+			"RimD2": {
+				"connections": ["D2", "RimD1", "RimD3"]
+			},
+			"RimD3": {
+				"connections": ["D3", "RimD2"]
+			},
+			"D1": {
+				"connections": ["D2", "D5", "D7", "D8", "RimD1"],
+				"positions": ["NW", "N"]
+			},
+			"D2": {
+				"connections": ["D1", "D3", "D4", "D5", "RimD2"],
+				"positions": ["W"]
+			},
+			"D3": {
+				"connections": ["D2", "D4", "RimD3"],
+				"positions": ["SW"]
+			},
+			"D4": {
+				"connections": ["D2", "D3", "D5", "D6"],
+				"positions": ["S"]
+			},
+			"D5": {
+				"connections": ["D1", "D2", "D4", "D6", "D7"],
+				"positions": ["C"]
+			},
+			"D6": {
+				"connections": ["D4", "D5", "D7"],
+				"positions": ["SE"]
+			},
+			"D7": {
+				"connections": ["D1", "D5", "D6", "D8"],
+				"positions": ["E"]
+			},
+			"D8": {
+				"connections": ["D1", "D7"],
 				"positions": ["NE"]
 			}
 		}

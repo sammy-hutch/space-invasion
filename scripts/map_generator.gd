@@ -3,7 +3,7 @@ class_name MapGenerator
 
 signal map_generated(current_iteration: int, graph_bounding_box: Rect2)
 
-@export_file("*.json") var map_data_path: String
+@export_file("*/maps.json") var map_data_path: String
 @export var zone_radius: float = 50.0
 @export var line_width: float = 2.0
 @export var sector_color: Color = Color.GREEN_YELLOW

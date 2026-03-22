@@ -8,6 +8,7 @@ map_generator.gd:
 - run generation all as one load step, rather than as part of process
 - pull custom data about zones (colour etc) from maps.json instead of as vars on map_generator script
 - improve Fruchterman-Reingold so nodes & lines don't overlap each other so much (reduce repulsion force, add a minimum distance each node needs to be from each other)
+- general improvemnt to map_generator.gd (rename map.gd so node handlesall map functions not just generastion, make patterns more consistent)
 map_config_screen.gd:
 - how to work with the sector scenes
 - add number of boards item list determines grid size
@@ -15,6 +16,7 @@ map_config_screen.gd:
     - standard: boards face back-to-back where possible, try to form as condensed a shape as possible
     - border: boards line up in single file, all facing same way
     - frontier: boards line up in single file but alternate which way they face
+- can only select each sector once
 sector scenes:
 - load info from maps.json
 - are they necessary?
