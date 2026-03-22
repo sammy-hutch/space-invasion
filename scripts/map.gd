@@ -1,5 +1,5 @@
 extends Node2D
-class_name MapGenerator
+class_name Map
 
 signal map_generated(current_iteration: int, graph_bounding_box: Rect2)
 
@@ -26,6 +26,7 @@ signal map_generated(current_iteration: int, graph_bounding_box: Rect2)
 @export var fr_max_displacement_limit: float = 50.0
 @export var fr_bounding_box_padding: float = 50.0
 
+# Child resources
 var SectorNodeScript = preload("res://scripts/sector_node.gd")
 var ZoneNodeScript = preload("res://scripts/zone_node.gd")
 
@@ -53,23 +54,25 @@ var map_style = "standard"
 func _ready() -> void:
 	pass
 
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(delta: float) -> void:
+	if is_layout_running:
+		return
+
+## Loads map data from file, adjusts data based on config from map_config_screen, then runs FR-algorithm to generate map. 
 func generate_map_from_config(map_layout: Dictionary):
-	print("MapGenerator: Starting map generation with custom config...")
-	print("map layout: ", map_layout)
 	if map_data_path:
 		load_map_data(map_layout)
 		if map_data:
 			configure_map_layout()
-			start_fr_layout()
+			run_fr_map_build()
 	else:
 		printerr("Error: Please assign a 'Map Data Path' in the inspector.")
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	if is_layout_running:
-		run_fr_iteration()
-		update_line_positions() # remove this later
 
+###### MAP GENERATION HELPER FUNCTIONS ######
+
+## Loads map data (sectors, zones, connections etc) from json file
 func load_map_data(map_layout: Dictionary):
 	var file = FileAccess.open(map_data_path, FileAccess.READ)
 	if file:
@@ -93,9 +96,11 @@ func load_map_data(map_layout: Dictionary):
 		file.close()
 	else: printerr("Failed to open map data file: ", map_data_path)
 
+## Updates map_data according to map_layout from map_config_screen.
+##
+## Identifies neigbouring sectors, rotates sectors if necessary and draws connections between sectors
 func configure_map_layout():
 	# --- 1. Identify Sector Neighbours ---
-	print("--- Identifying Sector Neighbours ---")
 	for u_sector_key in map_data:
 		var u_sector_data = map_data[u_sector_key]
 		var u_pos = u_sector_data["grid_pos"]
@@ -111,38 +116,33 @@ func configure_map_layout():
 			elif v_pos.x == u_pos.x and v_pos.y == u_pos.y + 1: u_sector_data["neighbours"]["S"] = v_sector_key
 			elif v_pos.x == u_pos.x and v_pos.y == u_pos.y - 1: u_sector_data["neighbours"]["N"] = v_sector_key
 
-		print("Sector: ", u_sector_key, " Neighbours: ", u_sector_data["neighbours"])
-
 	# --- 2. Apply Layout Logic (Rotation) ---
-	print("\n--- Applying Layout Logic (Rotation) ---")
 	if map_style == "standard":
 		for u_sector_key in map_data:
 			var u_sector_data = map_data[u_sector_key]
 			if "W" in u_sector_data["neighbours"]:
-				print("Rotating Sector ", u_sector_key, " 180 degrees due to East neighbour.")
 				rotate_sector(u_sector_key)
 	elif map_style == "frontier":
 		pass # TODO: add logic for other types
 
 	# --- 3. Identify Connections Across Sectors ---
-	print("\n--- Identifying Connections Across Sectors ---")
 	var border_connection_rules = {
-		"E": {  # If v_sector is East of u_sector
-			"NE": "NW", # u's NW connects to v's NE
-			"E":  "W",  # u's W connects to v's E
-			"SE": "SW"   # u's SW connects to v's SE
+		"E": {
+			"NE": "NW",
+			"E":  "W",
+			"SE": "SW"
 		},
-		"W": {  # If v_sector is West of u_sector
+		"W": {
 			"NW": "NE",
 			"W":  "E",
 			"SW": "SE"
 		},
-		"N": {  # If v_sector is North of u_sector
+		"N": {
 			"NE": "SE",
 			"N":  "S",
 			"NW": "SW"
 		},
-		"S": {  # If v_sector is South of u_sector
+		"S": {
 			"SE": "NE",
 			"S":  "N",
 			"SW": "NW"
@@ -155,41 +155,33 @@ func configure_map_layout():
 		for neighbour_direction in u_sector_data["neighbours"]:
 			var v_sector_key = u_sector_data["neighbours"][neighbour_direction]
 			var v_sector_data = map_data[v_sector_key]
-
 			var rules_for_this_border = border_connection_rules[neighbour_direction]
 
-			# Iterate through all zones in u_sector
 			for u_zone_key in u_sector_data["zones"]:
 				var u_zone_data = u_sector_data["zones"][u_zone_key]
 				if not ("positions" in u_zone_data): continue
 
 				var u_zone_positions = u_zone_data["positions"]
 
-				# Iterate through all zones in v_sector
 				for v_zone_key in v_sector_data["zones"]:
 					var v_zone_data = v_sector_data["zones"][v_zone_key]
 					if not ("positions" in v_zone_data): continue
 
 					var v_zone_positions = v_zone_data["positions"]
 
-					# Check for matching positions based on rules
 					for u_pos in u_zone_positions:
 						for v_pos in v_zone_positions:
 							if rules_for_this_border.has(u_pos) and rules_for_this_border[u_pos] == v_pos:
 								if not v_zone_key in u_zone_data["connections"]:
 									u_zone_data["connections"].append(v_zone_key)
-								# Optional: If connections are bidirectional, add the reverse
-								# if not u_zone_key in v_zone_data["connections"]:
-								#	v_zone_data["connections"].append(u_zone_key)
-								print("  Connection found: ", u_sector_key, ":", u_zone_key, "(", u_pos, ") <-> ", v_sector_key, ":", v_zone_key, "(", v_pos, ")")
 
+## Helper function for configure_map_layout()
 func rotate_sector(sector_key: String):
-	# This function performs a 180-degree rotation (N<->S, E<->W, etc.)
 	var sector_data = map_data[sector_key]
 	var rotation_map = {
 		"N": "S", "NE": "SW", "E": "W", "SE": "NW",
 		"S": "N", "SW": "NE", "W": "E", "NW": "SE",
-		"C": "C" # Center position often remains unchanged
+		"C": "C"
 	}
 
 	for zone_key in sector_data["zones"]:
@@ -203,7 +195,9 @@ func rotate_sector(sector_key: String):
 					new_positions.append(original_pos)
 			zone_data["positions"] = new_positions
 
-func start_fr_layout():
+## Runs Fruchterman-Reingold algorithm to generate map based on map_data
+func run_fr_map_build():
+	# 1. FR Set-up
 	for child in get_children():
 		child.queue_free()
 	sector_nodes.clear()
@@ -213,8 +207,7 @@ func start_fr_layout():
 	internal_sector_ids.clear()
 	internal_zone_ids.clear()
 
-	# 1. Initialise Sector & Zone Nodes with random positions around (0,0)
-
+	# 1.1. Initialise Sector & Zone Nodes with random positions around (0,0)
 	var sector_ids_from_data = map_data.keys()
 	for sector_id_str in sector_ids_from_data:
 		if map_data.has(sector_id_str) and typeof(map_data[sector_id_str]) == TYPE_DICTIONARY:
@@ -247,10 +240,9 @@ func start_fr_layout():
 					zone_positions[zone_id_str] = initial_pos
 					zone_displacements[zone_id_str] = Vector2.ZERO
 
-	# Set initial visual positions for sectors and zones based on their absolute calculated positions
 	_update_sector_positions_and_zone_relatives()
 
-	# 2. Create Line2D nodes
+	# 1.2. Create Line2D nodes
 	var drawn_connections = {}
 	for sector_id in map_data:
 		for zone_id in map_data[sector_id]["zones"]:
@@ -283,7 +275,7 @@ func start_fr_layout():
 					zone_nodes[zone_id].set_meta("connections", [])
 				zone_nodes[zone_id].get_meta("connections").append({ "line": line, "target": connected_zone_id})
 
-	# 3. Adjust drawing order (lines behind nodes)
+	# 1.3. Adjust drawing order (lines behind nodes)
 	for child in get_children():
 		if child is Line2D:
 			move_child(child, 0)
@@ -291,74 +283,72 @@ func start_fr_layout():
 	current_temperature = fr_initial_temperature
 	current_iteration = 0
 	is_layout_running = true
-	print("FR layout started for %d zones." % internal_zone_ids.size())
 
-func run_fr_iteration():
-	# Exit if complete
-	if current_iteration >= fr_iterations or current_temperature <= 0.1:
-		print("FR layout finished after %d iterations. Final temperature: %f" % [current_iteration, current_temperature])
-		is_layout_running = false
-		
-		var final_bounding_box = _calculate_graph_bounding_box()
-		_adjust_node_positions_to_origin(final_bounding_box)
-		_update_sector_positions_and_zone_relatives()
-		update_line_positions()
-		map_generated.emit(current_iteration, final_bounding_box)
-		print("Map Generation emitted. Generation complete.")
-		return
+	# 2. FR Run
+	while is_layout_running == true:
+		# Exit if complete
+		if current_iteration >= fr_iterations or current_temperature <= 0.1:
+			is_layout_running = false
+			var final_bounding_box = _calculate_graph_bounding_box()
+			_adjust_node_positions_to_origin(final_bounding_box)
+			_update_sector_positions_and_zone_relatives()
+			update_line_positions()
+			map_generated.emit(current_iteration, final_bounding_box)
+			return
 
-	for zone_id in internal_zone_ids:
-		zone_displacements[zone_id] = Vector2.ZERO
+		for zone_id in internal_zone_ids:
+			zone_displacements[zone_id] = Vector2.ZERO
 
-	# Repulsion calculations
-	for i in range(internal_zone_ids.size()):
-		var u_id = internal_zone_ids[i]
-		for j in range(i+1, internal_zone_ids.size()):
-			var v_id = internal_zone_ids[j]
-			var p_u = zone_positions[u_id]
-			var p_v = zone_positions[v_id]
-
-			var delta = p_u - p_v
-			var distance = max(0.001, delta.length())
-			var force_magnitude = (fr_k_factor * fr_k_factor) / distance
-			var force_vector = delta.normalized() * force_magnitude
-
-			zone_displacements[u_id] += force_vector
-			zone_displacements[v_id] -= force_vector
-
-	# Attraction calculations
-	for sector_id in map_data:
-		for u_id in map_data[sector_id]["zones"]:
-			var connections = map_data[sector_id]["zones"][u_id]["connections"]
-			for v_id in connections:
-				if not internal_zone_ids.has(v_id):
-					continue
-				
+		# Repulsion calculations
+		for i in range(internal_zone_ids.size()):
+			var u_id = internal_zone_ids[i]
+			for j in range(i+1, internal_zone_ids.size()):
+				var v_id = internal_zone_ids[j]
 				var p_u = zone_positions[u_id]
 				var p_v = zone_positions[v_id]
 
 				var delta = p_u - p_v
 				var distance = max(0.001, delta.length())
-				var force_magnitude = (distance * distance) / fr_k_factor
+				var force_magnitude = (fr_k_factor * fr_k_factor) / distance
 				var force_vector = delta.normalized() * force_magnitude
 
-				zone_displacements[u_id] -= force_vector
-				zone_displacements[v_id] += force_vector
+				zone_displacements[u_id] += force_vector
+				zone_displacements[v_id] -= force_vector
 
-	# Update absolute positions based on displacement and temperature
-	for zone_id in internal_zone_ids:
-		var displacement = zone_displacements[zone_id]
-		var disp_length = displacement.length()
+		# Attraction calculations
+		for sector_id in map_data:
+			for u_id in map_data[sector_id]["zones"]:
+				var connections = map_data[sector_id]["zones"][u_id]["connections"]
+				for v_id in connections:
+					if not internal_zone_ids.has(v_id):
+						continue
+					
+					var p_u = zone_positions[u_id]
+					var p_v = zone_positions[v_id]
 
-		var actual_displacement = displacement.normalized() * min(disp_length, current_temperature, fr_max_displacement_limit)
-		zone_positions[zone_id] += actual_displacement
+					var delta = p_u - p_v
+					var distance = max(0.001, delta.length())
+					var force_magnitude = (distance * distance) / fr_k_factor
+					var force_vector = delta.normalized() * force_magnitude
 
-	_update_sector_positions_and_zone_relatives()
+					zone_displacements[u_id] -= force_vector
+					zone_displacements[v_id] += force_vector
 
-	# Cooldown
-	current_temperature *= fr_cooling_rate
-	current_iteration += 1
+		# Update absolute positions based on displacement and temperature
+		for zone_id in internal_zone_ids:
+			var displacement = zone_displacements[zone_id]
+			var disp_length = displacement.length()
 
+			var actual_displacement = displacement.normalized() * min(disp_length, current_temperature, fr_max_displacement_limit)
+			zone_positions[zone_id] += actual_displacement
+
+		_update_sector_positions_and_zone_relatives()
+
+		# Cooldown
+		current_temperature *= fr_cooling_rate
+		current_iteration += 1
+
+## Helper function for run_fr_map_build()
 func _update_sector_positions_and_zone_relatives():
 	# Update the position of each SectorNode
 	for sector_id in internal_sector_ids:
@@ -387,6 +377,7 @@ func _update_sector_positions_and_zone_relatives():
 		else:
 			zone_node.position = zone_positions[zone_id]
 
+## Helper function for run_fr_map_build()
 func update_line_positions():
 	for zone_id in internal_zone_ids:
 		var node = zone_nodes[zone_id]
@@ -402,6 +393,7 @@ func update_line_positions():
 				else:
 					line.visible = false
 
+## Helper function for run_fr_map_build()
 func _calculate_graph_bounding_box() -> Rect2:
 	if internal_zone_ids.is_empty():
 		return Rect2(0, 0, 0, 0)
@@ -427,6 +419,7 @@ func _calculate_graph_bounding_box() -> Rect2:
 	var size = Vector2(max_x - min_x, max_y - min_y)
 	return Rect2(min_x, min_y, size.x, size.y)
 
+## Helper function for run_fr_map_build()
 func _adjust_node_positions_to_origin(bounding_box: Rect2):
 	var offset = -bounding_box.position 
 

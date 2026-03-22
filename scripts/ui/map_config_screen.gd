@@ -6,14 +6,14 @@ signal map_configured(map_layout: Dictionary)
 @export_dir var available_sectors_directory: String = "res://resources/sectors/"
 @export var grid_size: Vector2i = Vector2i(5, 5)
 
-var _available_sector_resources: Array[SectorData] = []
-var _selected_sector_data: SectorData = null
-var _map_layout_data: Dictionary = {}
-
 @onready var sector_selection_list: ItemList = $MainVBox/TopSectionHBox/SectorSelectionPanel/SectorSelectionList
 @onready var map_layout_grid_container: GridContainer = $MainVBox/TopSectionHBox/MapLayoutPanel/MapLayoutGrid
 @onready var clear_map_button: Button = $MainVBox/BottomButtonsHBox/ClearMapButton
 @onready var generate_map_button: Button = $MainVBox/BottomButtonsHBox/GenerateMapButton
+
+var _available_sector_resources: Array[SectorData] = []
+var _selected_sector_data: SectorData = null
+var _map_layout_data: Dictionary = {}
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -29,6 +29,7 @@ func _ready() -> void:
 		sector_selection_list.select(0)
 		_on_sector_selection_list_item_selected(0)
 
+## Loads sector resources from directory
 func _load_available_sectors():
 	var dir = DirAccess.open(available_sectors_directory)
 	if dir:
@@ -51,15 +52,10 @@ func _load_available_sectors():
 		print("available resource name: ", i.sector_id)
 
 func _setup_sector_selection_list():
-	# sector_selection_list.clear()
 	for sector_data in _available_sector_resources:
 		var item_idx = sector_selection_list.add_item(sector_data.sector_id, sector_data.preview_texture)
 
 func _setup_map_layout_grid():
-	#for child in map_layout_grid_container.get_children():
-		#child.queue_free()
-	#_map_layout_data.clear()
-	
 	map_layout_grid_container.columns = grid_size.x
 	for y in range(grid_size.y):
 		for x in range(grid_size.x):
@@ -77,6 +73,7 @@ func _get_cell_at_position(position: Vector2) -> MapGridCell:
 
 
 ###### SIGNAL CALLBACKS ######
+
 func _on_sector_selection_list_item_selected(index: int):
 	if index >= 0 and index < _available_sector_resources.size():
 		_selected_sector_data = _available_sector_resources[index]

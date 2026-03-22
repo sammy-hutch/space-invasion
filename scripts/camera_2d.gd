@@ -11,8 +11,8 @@ func _ready():
 	make_current() 
 	
 	if main_node:
-		if main_node.has_signal("adjust camera"):
-			main_node.adjust_camera.connect(_on_map_generated)
+		if main_node.has_signal("adjust_camera"):
+			main_node.adjust_camera.connect(_on_camera_adjust_requested)
 		else:
 			printerr("Main node does not have 'adjust_camera' signal.")
 
@@ -40,17 +40,13 @@ func _unhandled_input(event: InputEvent) -> void:
 				var diff = mouse_world_pos_before_zoom - mouse_world_pos_after_zoom
 				position += diff
 
-# This function is called when the MapGenerator finishes laying out the map
-func _on_map_generated(current_iteration: int, graph_bounding_box: Rect2):
-	print("Camera: Received map_layout_finished signal from Main!")
-	print("Camera: Graph Bounding Box: ", graph_bounding_box)
 
-	# Calculate zoom level to fit the bounding box within the viewport
+func _on_camera_adjust_requested(bounding_box: Rect2):
 	var viewport_size = get_viewport_rect().size
 	var margin_factor = 1.1
 
-	var target_width = graph_bounding_box.size.x * margin_factor
-	var target_height = graph_bounding_box.size.y * margin_factor
+	var target_width = bounding_box.size.x * margin_factor
+	var target_height = bounding_box.size.y * margin_factor
 
 	var scale_x = viewport_size.x / target_width
 	var scale_y = viewport_size.y / target_height
@@ -58,3 +54,5 @@ func _on_map_generated(current_iteration: int, graph_bounding_box: Rect2):
 	var initial_calculated_zoom = min(scale_x, scale_y)
 	zoom = Vector2(initial_calculated_zoom, initial_calculated_zoom)
 	zoom = zoom.clamp(Vector2(min_zoom, min_zoom), Vector2(max_zoom, max_zoom))
+	
+	position = bounding_box.get_center()
