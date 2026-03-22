@@ -46,14 +46,14 @@ func _load_available_sectors():
 		dir.list_dir_end()
 	else:
 		push_error("Could not open directory for sectors: %s" % available_sectors_directory)
-	_available_sector_resources.sort_custom(func(a,b): return a.sector_name < b.sector_name)
+	_available_sector_resources.sort_custom(func(a,b): return a.sector_id < b.sector_id)
 	for i in _available_sector_resources:
-		print("available resource name: ", i.sector_name)
+		print("available resource name: ", i.sector_id)
 
 func _setup_sector_selection_list():
 	# sector_selection_list.clear()
 	for sector_data in _available_sector_resources:
-		var item_idx = sector_selection_list.add_item(sector_data.sector_name, sector_data.preview_texture)
+		var item_idx = sector_selection_list.add_item(sector_data.sector_id, sector_data.preview_texture)
 
 func _setup_map_layout_grid():
 	#for child in map_layout_grid_container.get_children():
@@ -94,7 +94,7 @@ func _on_map_grid_cell_clicked(position: Vector2):
 	elif _selected_sector_data:
 		_map_layout_data[position] = _selected_sector_data
 		cell.assigned_sector_data = _selected_sector_data
-		print("Placed '%s' at %s" % [_selected_sector_data.sector_name, position])
+		print("Placed '%s' at %s" % [_selected_sector_data.sector_id, position])
 	else:
 		print("No sector selected to place.")
 
@@ -110,6 +110,7 @@ func _on_generate_map_button_pressed():
 		print("Warning: No sectors placed. Generating an empty map.")
 	
 	map_configured.emit(_map_layout_data)
+	print(_map_layout_data)
 	print("Map configuration emitted. Configuration screen will now close.")
 	queue_free()
 

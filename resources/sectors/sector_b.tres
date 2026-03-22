@@ -5,5 +5,6 @@
 [resource]
 script = ExtResource("1_gkxuw")
 sector_name = "Sector B"
+sector_id = "Sector_B"
 sector_scene_path = "uid://qqv5688fg125"
 metadata/_custom_type_script = "uid://h7bh5bnqtn28"

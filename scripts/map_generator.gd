@@ -6,11 +6,15 @@ signal map_generated(current_iteration: int)
 @export_file("*.json") var map_data_path: String
 @export var zone_radius: float = 50.0
 @export var line_width: float = 2.0
+@export var sector_color: Color = Color.GREEN_YELLOW
 @export var zone_color: Color = Color.CORNFLOWER_BLUE
 @export var line_color: Color = Color.WHITE
+@export var sector_label_color: Color = Color.BLACK
 @export var zone_label_color: Color = Color.BLACK
 @export var layout_radius: float = 200.0
+@export var sector_font: Font
 @export var zone_font: Font
+@export var sector_font_size: int = 20
 @export var zone_font_size: int = 20
 
 # Fruchterman-Reingold Layout parameters
@@ -22,16 +26,19 @@ signal map_generated(current_iteration: int)
 @export var fr_max_displacement_limit: float = 50.0
 @export var fr_boundary_padding: float = 50.0
 
+var SectorNodeScript = preload("res://scripts/sector_node.gd")
 var ZoneNodeScript = preload("res://scripts/zone_node.gd")
 
-var map_data: Dictionary = {}
-var zone_nodes: Dictionary = {}
+var map_data: Dictionary = {} # Dict of maps.json data file
+var sector_nodes: Dictionary = {} # Dict of sector_node.gd Node2D objects
+var zone_nodes: Dictionary = {} # Dict of zone_node.gd Node2D objects
 var zone_positions: Dictionary = {}
 var zone_displacements: Dictionary = {}
 
 var current_temperature: float
 var current_iteration: int = 0
 var is_layout_running: bool = false
+var internal_sector_ids: Array = []
 var internal_zone_ids: Array = []
 
 # Tuning Tips for FR Parameters
@@ -48,8 +55,9 @@ func _ready() -> void:
 
 func generate_map_from_config(map_layout: Dictionary):
 	print("MapGenerator: Starting map generation with custom config...")
+	print("map layout: ", map_layout)
 	if map_data_path:
-		load_map_data()
+		load_map_data(map_layout)
 		if map_data:
 			start_fr_layout()
 	else:
@@ -64,17 +72,21 @@ func _process(delta: float) -> void:
 		center_layout_on_screen() # remove this later
 
 
-func load_map_data():
+func load_map_data(map_layout: Dictionary):
 	var file = FileAccess.open(map_data_path, FileAccess.READ)
 	if file:
 		var content = file.get_as_text()
 		var parse_result = JSON.parse_string(content)
 		if parse_result is Dictionary:
-			if parse_result.has("A"):
-				map_data = parse_result["A"]
-			else:
-				map_data = parse_result
-			print("Map data loaded successfully.")
+			for position in map_layout.keys():
+				var sector_data: SectorData = map_layout[position]
+				var sector_id: String = sector_data.sector_id
+				if parse_result.has(sector_id):
+					map_data[sector_id] = parse_result[sector_id]
+				#else:
+					#map_data = parse_result
+				print("Map data loaded successfully.")
+			print("map data: ", map_data)
 		else: 
 			printerr("Failed to parse JSON: ", parse_result)
 		file.close()
@@ -89,61 +101,76 @@ func start_fr_layout():
 	zone_displacements.clear()
 	internal_zone_ids.clear()
 
-	# 1. Initialise Zone Nodes
-	var zone_ids = map_data.keys()
-	internal_zone_ids = []
-	for zone_id_str in zone_ids:
-		if map_data.has(zone_id_str) and typeof(map_data[zone_id_str]) == TYPE_DICTIONARY:
-			internal_zone_ids.append(zone_id_str)
-	
+	# 1. Initialise Sector & Zone Nodes
 	var viewport_size = get_viewport_rect().size
-	for zone_id in internal_zone_ids:
-		var zone_node = Node2D.new()
-		zone_node.set_script(ZoneNodeScript)
-		add_child(zone_node)
-		zone_nodes[zone_id] = zone_node
+	
+	var sector_ids = map_data.keys()
+	internal_sector_ids = []
+	internal_zone_ids = []
+	for sector_id_str in sector_ids:
+		if map_data.has(sector_id_str) and typeof(map_data[sector_id_str]) == TYPE_DICTIONARY:
+			internal_sector_ids.append(sector_id_str)
+			
+			var sector_node = Node2D.new()
+			sector_node.set_script(SectorNodeScript)
+			add_child(sector_node)
+			sector_nodes[sector_id_str] = sector_node
+			sector_node.setup(sector_id_str, sector_color, sector_label_color, sector_font, sector_font_size)
 
-		zone_node.setup(zone_id, zone_radius, zone_color, zone_label_color, zone_font, zone_font_size)
+			var sector_data = map_data[sector_id_str]
+			var zone_ids = sector_data.keys()
+			for zone_id_str in zone_ids:
+				if sector_data.has(zone_id_str) and typeof(sector_data[zone_id_str]) == TYPE_DICTIONARY:
+					internal_zone_ids.append(zone_id_str)
+					
+					var zone_node = Node2D.new()
+					zone_node.set_script(ZoneNodeScript)
+					sector_node.add_child(zone_node)
+					zone_nodes[zone_id_str] = zone_node
 
-		var rand_x = randf_range(fr_boundary_padding, viewport_size.x - fr_boundary_padding)
-		var rand_y = randf_range(fr_boundary_padding, viewport_size.y - fr_boundary_padding)
-		var initial_pos = Vector2(rand_x, rand_y)
-		zone_positions[zone_id] = initial_pos
-		zone_node.position = initial_pos
+					zone_node.setup(zone_id_str, zone_radius, zone_color, zone_label_color, zone_font, zone_font_size)
 
-		zone_displacements[zone_id] = Vector2.ZERO
+					var rand_x = randf_range(fr_boundary_padding, viewport_size.x - fr_boundary_padding)
+					var rand_y = randf_range(fr_boundary_padding, viewport_size.y - fr_boundary_padding)
+					var initial_pos = Vector2(rand_x, rand_y)
+					zone_positions[zone_id_str] = initial_pos
+					zone_node.position = initial_pos
+
+					zone_displacements[zone_id_str] = Vector2.ZERO
+
 	
 	# 2. Create Line2D nodes
 	var drawn_connections = {}
-	for zone_id in map_data:
-		var connections = map_data[zone_id]["connections"]
-		for connected_zone_id in connections:
-			if not internal_zone_ids.has(zone_id) or not internal_zone_ids.has(connected_zone_id):
-				print("Skipping external connection '%s' from zone '%s'." % [connected_zone_id, zone_id])
-				continue
-			
-			var id1 = str(zone_id)
-			var id2 = str(connected_zone_id)
-			var connection_key = ""
-			if id1 < id2:
-				connection_key = "%s-%s" % [id1, id2]
-			else:
-				connection_key = "%s-%s" % [id2, id1]
-			
-			if connection_key in drawn_connections:
-				continue
-			drawn_connections[connection_key] = true
-			
-			var line = Line2D.new()
-			line.add_point(Vector2.ZERO)
-			line.add_point(Vector2.ZERO)
-			line.width = line_width
-			line.default_color = line_color
-			add_child(line)
+	for sector_id in map_data:
+		for zone_id in map_data[sector_id]:
+			var connections = map_data[sector_id][zone_id]["connections"]
+			for connected_zone_id in connections:
+				if not internal_zone_ids.has(zone_id) or not internal_zone_ids.has(connected_zone_id):
+					print("Skipping external connection '%s' from zone '%s'." % [connected_zone_id, zone_id])
+					continue
+				
+				var id1 = str(zone_id)
+				var id2 = str(connected_zone_id)
+				var connection_key = ""
+				if id1 < id2:
+					connection_key = "%s-%s" % [id1, id2]
+				else:
+					connection_key = "%s-%s" % [id2, id1]
+				
+				if connection_key in drawn_connections:
+					continue
+				drawn_connections[connection_key] = true
+				
+				var line = Line2D.new()
+				line.add_point(Vector2.ZERO)
+				line.add_point(Vector2.ZERO)
+				line.width = line_width
+				line.default_color = line_color
+				add_child(line)
 
-			if not zone_nodes[zone_id].has_meta("connections"):
-				zone_nodes[zone_id].set_meta("connections", [])
-			zone_nodes[zone_id].get_meta("connections").append({ "line": line, "target": connected_zone_id})
+				if not zone_nodes[zone_id].has_meta("connections"):
+					zone_nodes[zone_id].set_meta("connections", [])
+				zone_nodes[zone_id].get_meta("connections").append({ "line": line, "target": connected_zone_id})
 	
 	# 3. Adjust drawing order
 	for child in get_children():
@@ -187,22 +214,23 @@ func run_fr_iteration():
 			zone_displacements[v_id] -= force_vector
 	
 	# Attraction calcs
-	for u_id in internal_zone_ids:
-		var connections = map_data[u_id]["connections"]
-		for v_id in connections:
-			if not internal_zone_ids.has(v_id):
-				continue
-			
-			var p_u = zone_positions[u_id]
-			var p_v = zone_positions[v_id]
+	for sector_id in map_data:
+		for u_id in map_data[sector_id]:
+			var connections = map_data[sector_id][u_id]["connections"]
+			for v_id in connections:
+				if not internal_zone_ids.has(v_id):
+					continue
+				
+				var p_u = zone_positions[u_id]
+				var p_v = zone_positions[v_id]
 
-			var delta = p_u - p_v
-			var distance = max(0.001, delta.length())
-			var force_magnitude = (distance * distance) / fr_k_factor
-			var force_vector = delta.normalized() * force_magnitude
+				var delta = p_u - p_v
+				var distance = max(0.001, delta.length())
+				var force_magnitude = (distance * distance) / fr_k_factor
+				var force_vector = delta.normalized() * force_magnitude
 
-			zone_displacements[u_id] -= force_vector
-			zone_displacements[v_id] += force_vector
+				zone_displacements[u_id] -= force_vector
+				zone_displacements[v_id] += force_vector
 	
 	# Positioning
 	var viewport_rect = get_viewport_rect()
