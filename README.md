@@ -5,6 +5,7 @@ Spirit Island gameplay with a Twilight Imperium Theme
 ## TODO
 map_generator.gd:
 - generate_map_from_config() / load_map_data() / start_fr_layot(): need to add new logic to use the map_layout passed from config screen, rather than takign single sector from dictionary
+- run generation all as one load step, rather than as part of process
 map_config_screen.gd:
 - how to work with the sector scenes
 - add number of boards item list determines grid size

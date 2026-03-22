@@ -3,6 +3,10 @@ extends Node2D
 @export var map_config_screen_scene: PackedScene = preload("res://scenes/mapConfigScreen.tscn")
 @export var map_generator_scene: PackedScene = preload("res://scenes/map_generator.tscn")
 
+@onready var camera_2d: Camera2D = $Camera2D
+
+signal adjust_camera(viewport_size: Rect2)
+
 var config_screen: Node
 var map_generator: Node
 
@@ -46,8 +50,10 @@ func _on_map_configured(map_layout: Dictionary):
 	print("Received map configuration from screen")
 	_run_map_generator(map_layout)
 
-func _on_map_generated(current_iteration: int):
+func _on_map_generated(current_iteration: int, graph_bounding_box: Rect2):
 	print("Map generated after %d iterations" % current_iteration)
+	print("Graph Bounding Box: ", graph_bounding_box)
+	emit_signal("adjust camera", graph_bounding_box)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
