@@ -41,6 +41,8 @@ var is_layout_running: bool = false
 var internal_sector_ids: Array = []
 var internal_zone_ids: Array = []
 
+var map_style = "standard"
+
 # Tuning Tips for FR Parameters
 # - fr_k_factor: higher = wider node spacing, lower = tighter packed nodes. good heuristic: k = sqrt(ViewportArea / NumberOfNodes)
 # - fr_initial_temperature: higher = better overall result, lower = faster settling
@@ -57,6 +59,7 @@ func generate_map_from_config(map_layout: Dictionary):
 	if map_data_path:
 		load_map_data(map_layout)
 		if map_data:
+			configure_map_layout()
 			start_fr_layout()
 	else:
 		printerr("Error: Please assign a 'Map Data Path' in the inspector.")
@@ -78,6 +81,8 @@ func load_map_data(map_layout: Dictionary):
 				var sector_id: String = sector_data.sector_id
 				if parse_result.has(sector_id):
 					map_data[sector_id] = parse_result[sector_id]
+					map_data[sector_id]["grid_pos"] = position
+					print(map_data[sector_id]["grid_pos"])
 				else:
 					print("no data found for sector id %s in map_data file" % sector_id)
 				print("Map data loaded successfully.")
@@ -86,6 +91,78 @@ func load_map_data(map_layout: Dictionary):
 			printerr("Failed to parse JSON: ", parse_result)
 		file.close()
 	else: printerr("Failed to open map data file: ", map_data_path)
+
+func configure_map_layout():
+	# identify sector neighbours from map layout
+	for u_sector in map_data:
+		var u_pos = u_sector["grid_pos"]
+		map_data[u_sector]["neighbours"] = {}
+		for v_sector in map_data:
+			var v_pos = v_sector["grid_pos"]
+			if v_pos.x == u_pos.x + 1 and v_pos.y == u_pos.y: map_data[u_sector]["neighbours"]["W"] = v_sector
+			if v_pos.x == u_pos.x - 1 and v_pos.y == u_pos.y: map_data[u_sector]["neighbours"]["E"] = v_sector
+			if v_pos.x == u_pos.x and v_pos.y == u_pos.y + 1: map_data[u_sector]["neighbours"]["S"] = v_sector
+			if v_pos.x == u_pos.x and v_pos.y == u_pos.y - 1: map_data[u_sector]["neighbours"]["N"] = v_sector
+		print("sector: ", u_sector)
+		print("neigbours: ", map_data[u_sector]["neighbours"])
+	
+	# layout logic blocks
+	if map_style == "standard":
+		for u_sector in map_data:
+			if u_sector["neighbours"]["E"]:
+				rotate_sector(u_sector, "W")
+	elif map_style == "frontier":
+		pass # TODO: add logic for other types
+	
+	# identify connections across sectors
+	for u_sector in map_data:
+		for v_sector in map_data:
+			if u_sector["neighbours"]["E"] == v_sector:
+				for u_zone in map_data[u_sector]:
+					for v_zone in map_data[v_sector]:
+						for u_pos in map_data[u_sector][u_zone]["positions"]:
+							for v_pos in map_data[v_sector][v_zone]["positions"]:
+								if u_pos == "NW" and v_pos == "NE": map_data[u_sector][u_zone]["connections"].add(v_zone)
+								if u_pos == "W"  and v_pos == "E" : map_data[u_sector][u_zone]["connections"].add(v_zone)
+								if u_pos == "SW" and v_pos == "SE": map_data[u_sector][u_zone]["connections"].add(v_zone)
+			if u_sector["neighbours"]["W"] == v_sector:
+				for u_zone in map_data[u_sector]:
+					for v_zone in map_data[v_sector]:
+						for u_pos in map_data[u_sector][u_zone]["positions"]:
+							for v_pos in map_data[v_sector][v_zone]["positions"]:
+								if u_pos == "NE" and v_pos == "NW": map_data[u_sector][u_zone]["connections"].add(v_zone)
+								if u_pos == "E"  and v_pos == "W" : map_data[u_sector][u_zone]["connections"].add(v_zone)
+								if u_pos == "SE" and v_pos == "SW": map_data[u_sector][u_zone]["connections"].add(v_zone)
+			if u_sector["neighbours"]["N"] == v_sector:
+				for u_zone in map_data[u_sector]:
+					for v_zone in map_data[v_sector]:
+						for u_pos in map_data[u_sector][u_zone]["positions"]:
+							for v_pos in map_data[v_sector][v_zone]["positions"]:
+								if u_pos == "SE" and v_pos == "NE": map_data[u_sector][u_zone]["connections"].add(v_zone)
+								if u_pos == "S"  and v_pos == "N" : map_data[u_sector][u_zone]["connections"].add(v_zone)
+								if u_pos == "SW" and v_pos == "NW": map_data[u_sector][u_zone]["connections"].add(v_zone)
+			if u_sector["neighbours"]["S"] == v_sector:
+				for u_zone in map_data[u_sector]:
+					for v_zone in map_data[v_sector]:
+						for u_pos in map_data[u_sector][u_zone]["positions"]:
+							for v_pos in map_data[v_sector][v_zone]["positions"]:
+								if u_pos == "NE" and v_pos == "SE": map_data[u_sector][u_zone]["connections"].add(v_zone)
+								if u_pos == "N"  and v_pos == "S" : map_data[u_sector][u_zone]["connections"].add(v_zone)
+								if u_pos == "NW" and v_pos == "SW": map_data[u_sector][u_zone]["connections"].add(v_zone)
+		
+
+func rotate_sector(sector, direction):
+	for zone in map_data[sector]:
+		for pos in zone["positions"]:
+			if direction == "W": # flip to opposite positions
+				if pos == "N": map_data[sector][zone][pos] = "S"
+				if pos == "NE": map_data[sector][zone][pos] = "SW"
+				if pos == "E": map_data[sector][zone][pos] = "W"
+				if pos == "SE": map_data[sector][zone][pos] = "NW"
+				if pos == "S": map_data[sector][zone][pos] = "N"
+				if pos == "SW": map_data[sector][zone][pos] = "NE"
+				if pos == "W": map_data[sector][zone][pos] = "E"
+				if pos == "NW": map_data[sector][zone][pos] = "SE"
 
 func start_fr_layout():
 	for child in get_children():
