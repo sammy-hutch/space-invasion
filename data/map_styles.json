@@ -1,0 +1,14 @@
+{
+	"standard": {
+		"style_name": "standard",
+		"description": "Clustered sectors with Rim on both sides. You will be attacked from all directions, but have the support of a core centre"
+	},
+	"frontier": {
+		"style_name": "frontier",
+		"description": "Dangerous sectors strewn out in the galactic frontier, with Rim encroaching on all sides"
+	},
+	"border": {
+		"style_name": "border",
+		"description": "A united front against Rim on one side. Due to the extensive nature of the Rim, forces are spread out along a thin border"
+	}
+}

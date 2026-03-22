@@ -10,16 +10,53 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_dlrev")
+map_styles_path = "res://data/map_styles.json"
 
 [node name="MainVBox" type="VBoxContainer" parent="."]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+custom_minimum_size = Vector2(300, 600)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_constants/separation = 10
 
 [node name="TopSectionHBox" type="HBoxContainer" parent="MainVBox"]
 layout_mode = 2
 size_flags_vertical = 3
+
+[node name="MapSettings" type="VBoxContainer" parent="MainVBox/TopSectionHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SectorCount" type="Label" parent="MainVBox/TopSectionHBox/MapSettings"]
+layout_mode = 2
+text = "Sector Count"
+
+[node name="SectorCountSelectionList" type="ItemList" parent="MainVBox/TopSectionHBox/MapSettings"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="HSeparator" type="HSeparator" parent="MainVBox/TopSectionHBox/MapSettings"]
+layout_mode = 2
+
+[node name="MapStyle" type="Label" parent="MainVBox/TopSectionHBox/MapSettings"]
+layout_mode = 2
+text = "Map Style"
+
+[node name="MapStyleSelectionList" type="ItemList" parent="MainVBox/TopSectionHBox/MapSettings"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="HSeparator2" type="HSeparator" parent="MainVBox/TopSectionHBox/MapSettings"]
+layout_mode = 2
+
+[node name="MapStyleInfo" type="RichTextLabel" parent="MainVBox/TopSectionHBox/MapSettings"]
+layout_mode = 2
+
+[node name="VSeparator2" type="VSeparator" parent="MainVBox/TopSectionHBox"]
+layout_mode = 2
 
 [node name="SectorSelectionPanel" type="VBoxContainer" parent="MainVBox/TopSectionHBox"]
 layout_mode = 2
