@@ -1,7 +1,7 @@
 extends Node2D
 class_name MapGenerator
 
-signal map_generated(current_iteration: int)
+signal map_generated(current_iteration: int, graph_bounding_box: Rect2)
 
 @export_file("*.json") var map_data_path: String
 @export var zone_radius: float = 50.0
@@ -11,7 +11,7 @@ signal map_generated(current_iteration: int)
 @export var line_color: Color = Color.WHITE
 @export var sector_label_color: Color = Color.BLACK
 @export var zone_label_color: Color = Color.BLACK
-@export var layout_radius: float = 200.0
+@export var layout_radius: float = 200.0 # Used for initial random placement
 @export var sector_font: Font
 @export var zone_font: Font
 @export var sector_font_size: int = 20
@@ -24,7 +24,7 @@ signal map_generated(current_iteration: int)
 @export var fr_cooling_rate: float = 0.99
 @export var fr_k_factor: float = 175.0
 @export var fr_max_displacement_limit: float = 50.0
-@export var fr_boundary_padding: float = 50.0
+@export var fr_bounding_box_padding: float = 50.0
 
 var SectorNodeScript = preload("res://scripts/sector_node.gd")
 var ZoneNodeScript = preload("res://scripts/zone_node.gd")
@@ -47,11 +47,9 @@ var internal_zone_ids: Array = []
 # - fr_cooling_rate: higher = more iterations but takes longer. range perhaps 0.98 to 0.995
 # - fr_iterations: need upper bound to prevent infinite loops
 
-
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	pass
-
 
 func generate_map_from_config(map_layout: Dictionary):
 	print("MapGenerator: Starting map generation with custom config...")
@@ -63,14 +61,11 @@ func generate_map_from_config(map_layout: Dictionary):
 	else:
 		printerr("Error: Please assign a 'Map Data Path' in the inspector.")
 
-
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
 	if is_layout_running:
 		run_fr_iteration()
 		update_line_positions() # remove this later
-		center_layout_on_screen() # remove this later
-
 
 func load_map_data(map_layout: Dictionary):
 	var file = FileAccess.open(map_data_path, FileAccess.READ)
@@ -83,8 +78,8 @@ func load_map_data(map_layout: Dictionary):
 				var sector_id: String = sector_data.sector_id
 				if parse_result.has(sector_id):
 					map_data[sector_id] = parse_result[sector_id]
-				#else:
-					#map_data = parse_result
+				else:
+					print("no data found for sector id %s in map_data file" % sector_id)
 				print("Map data loaded successfully.")
 			print("map data: ", map_data)
 		else: 
@@ -92,27 +87,26 @@ func load_map_data(map_layout: Dictionary):
 		file.close()
 	else: printerr("Failed to open map data file: ", map_data_path)
 
-
 func start_fr_layout():
 	for child in get_children():
 		child.queue_free()
+	sector_nodes.clear()
 	zone_nodes.clear()
 	zone_positions.clear()
 	zone_displacements.clear()
+	internal_sector_ids.clear()
 	internal_zone_ids.clear()
 
-	# 1. Initialise Sector & Zone Nodes
-	var viewport_size = get_viewport_rect().size
-	
-	var sector_ids = map_data.keys()
-	internal_sector_ids = []
-	internal_zone_ids = []
-	for sector_id_str in sector_ids:
+	# 1. Initialise Sector & Zone Nodes with random positions around (0,0)
+
+	var sector_ids_from_data = map_data.keys()
+	for sector_id_str in sector_ids_from_data:
 		if map_data.has(sector_id_str) and typeof(map_data[sector_id_str]) == TYPE_DICTIONARY:
 			internal_sector_ids.append(sector_id_str)
 			
 			var sector_node = Node2D.new()
 			sector_node.set_script(SectorNodeScript)
+			sector_node.name = sector_id_str
 			add_child(sector_node)
 			sector_nodes[sector_id_str] = sector_node
 			sector_node.setup(sector_id_str, sector_color, sector_label_color, sector_font, sector_font_size)
@@ -125,20 +119,21 @@ func start_fr_layout():
 					
 					var zone_node = Node2D.new()
 					zone_node.set_script(ZoneNodeScript)
+					zone_node.name = zone_id_str
 					sector_node.add_child(zone_node)
 					zone_nodes[zone_id_str] = zone_node
 
 					zone_node.setup(zone_id_str, zone_radius, zone_color, zone_label_color, zone_font, zone_font_size)
 
-					var rand_x = randf_range(fr_boundary_padding, viewport_size.x - fr_boundary_padding)
-					var rand_y = randf_range(fr_boundary_padding, viewport_size.y - fr_boundary_padding)
+					var rand_x = randf_range(-layout_radius, layout_radius)
+					var rand_y = randf_range(-layout_radius, layout_radius)
 					var initial_pos = Vector2(rand_x, rand_y)
 					zone_positions[zone_id_str] = initial_pos
-					zone_node.position = initial_pos
-
 					zone_displacements[zone_id_str] = Vector2.ZERO
 
-	
+	# Set initial visual positions for sectors and zones based on their absolute calculated positions
+	_update_sector_positions_and_zone_relatives()
+
 	# 2. Create Line2D nodes
 	var drawn_connections = {}
 	for sector_id in map_data:
@@ -171,33 +166,35 @@ func start_fr_layout():
 				if not zone_nodes[zone_id].has_meta("connections"):
 					zone_nodes[zone_id].set_meta("connections", [])
 				zone_nodes[zone_id].get_meta("connections").append({ "line": line, "target": connected_zone_id})
-	
-	# 3. Adjust drawing order
+
+	# 3. Adjust drawing order (lines behind nodes)
 	for child in get_children():
 		if child is Line2D:
 			move_child(child, 0)
-	
+
 	current_temperature = fr_initial_temperature
 	current_iteration = 0
 	is_layout_running = true
 	print("FR layout started for %d zones." % internal_zone_ids.size())
-
 
 func run_fr_iteration():
 	# Exit if complete
 	if current_iteration >= fr_iterations or current_temperature <= 0.1:
 		print("FR layout finished after %d iterations. Final temperature: %f" % [current_iteration, current_temperature])
 		is_layout_running = false
-		center_layout_on_screen()
+		
+		var final_bounding_box = _calculate_graph_bounding_box()
+		_adjust_node_positions_to_origin(final_bounding_box)
+		_update_sector_positions_and_zone_relatives()
 		update_line_positions()
-		map_generated.emit(current_iteration)
+		map_generated.emit(current_iteration, final_bounding_box)
 		print("Map Generation emitted. Generation complete.")
 		return
-	
+
 	for zone_id in internal_zone_ids:
 		zone_displacements[zone_id] = Vector2.ZERO
-	
-	# Repulsion calcs
+
+	# Repulsion calculations
 	for i in range(internal_zone_ids.size()):
 		var u_id = internal_zone_ids[i]
 		for j in range(i+1, internal_zone_ids.size()):
@@ -212,8 +209,8 @@ func run_fr_iteration():
 
 			zone_displacements[u_id] += force_vector
 			zone_displacements[v_id] -= force_vector
-	
-	# Attraction calcs
+
+	# Attraction calculations
 	for sector_id in map_data:
 		for u_id in map_data[sector_id]:
 			var connections = map_data[sector_id][u_id]["connections"]
@@ -231,24 +228,48 @@ func run_fr_iteration():
 
 				zone_displacements[u_id] -= force_vector
 				zone_displacements[v_id] += force_vector
-	
-	# Positioning
-	var viewport_rect = get_viewport_rect()
+
+	# Update absolute positions based on displacement and temperature
 	for zone_id in internal_zone_ids:
 		var displacement = zone_displacements[zone_id]
 		var disp_length = displacement.length()
 
 		var actual_displacement = displacement.normalized() * min(disp_length, current_temperature, fr_max_displacement_limit)
 		zone_positions[zone_id] += actual_displacement
-		zone_positions[zone_id].x = clamp(zone_positions[zone_id].x, fr_boundary_padding, viewport_rect.size.x - fr_boundary_padding)
-		zone_positions[zone_id].y = clamp(zone_positions[zone_id].y, fr_boundary_padding, viewport_rect.size.y - fr_boundary_padding)
 
-		zone_nodes[zone_id].position = zone_positions[zone_id]
-	
+	_update_sector_positions_and_zone_relatives()
+
 	# Cooldown
 	current_temperature *= fr_cooling_rate
 	current_iteration += 1
 
+func _update_sector_positions_and_zone_relatives():
+	# Update the position of each SectorNode
+	for sector_id in internal_sector_ids:
+		var sector_node = sector_nodes[sector_id]
+		var zones_in_sector_positions = []
+		
+		for zone_id in map_data[sector_id].keys():
+			if internal_zone_ids.has(zone_id):
+				zones_in_sector_positions.append(zone_positions[zone_id])
+		
+		if zones_in_sector_positions.is_empty():
+			sector_node.position = Vector2.ZERO
+			continue
+
+		var avg_pos = Vector2.ZERO
+		for pos in zones_in_sector_positions:
+			avg_pos += pos
+		sector_node.position = avg_pos / zones_in_sector_positions.size()
+
+	# Update the position of each ZoneNode relative to its parent SectorNode
+	for zone_id in internal_zone_ids:
+		var zone_node = zone_nodes[zone_id]
+		var sector_node = zone_node.get_parent() as Node2D
+		if sector_node:
+			zone_node.position = zone_positions[zone_id] - sector_node.position
+		else:
+			zone_node.position = zone_positions[zone_id]
 
 func update_line_positions():
 	for zone_id in internal_zone_ids:
@@ -260,16 +281,16 @@ func update_line_positions():
 				var target_id = conn["target"]
 				if internal_zone_ids.has(target_id): 
 					var target_node = zone_nodes[target_id]
-					line.set_point_position(0, node.position)
-					line.set_point_position(1, target_node.position)
+					line.set_point_position(0, zone_positions[zone_id])
+					line.set_point_position(1, zone_positions[target_id])
 				else:
 					line.visible = false
 
-
-func center_layout_on_screen():
+func _calculate_graph_bounding_box() -> Rect2:
 	if internal_zone_ids.is_empty():
-		return
-	
+		return Rect2(0, 0, 0, 0)
+		print("no zones in internal_zone_ids!")
+
 	var min_x = INF
 	var max_x = -INF
 	var min_y = INF
@@ -281,17 +302,17 @@ func center_layout_on_screen():
 		max_x = max(max_x, pos.x)
 		min_y = min(min_y, pos.y)
 		max_y = max(max_y, pos.y)
-	
-	var graph_center = Vector2((min_x + max_x) / 2, (min_y + max_y) / 2)
-	var viewport_center = get_viewport_rect().size / 2
-	var offset = viewport_center - graph_center
+
+	min_x -= fr_bounding_box_padding
+	max_x += fr_bounding_box_padding
+	min_y -= fr_bounding_box_padding
+	max_y += fr_bounding_box_padding
+
+	var size = Vector2(max_x - min_x, max_y - min_y)
+	return Rect2(min_x, min_y, size.x, size.y)
+
+func _adjust_node_positions_to_origin(bounding_box: Rect2):
+	var offset = -bounding_box.position 
 
 	for zone_id in internal_zone_ids:
 		zone_positions[zone_id] += offset
-		zone_nodes[zone_id].position = zone_positions[zone_id]
-	
-	var viewport_rect = get_viewport_rect()
-	for zone_id in internal_zone_ids:
-		zone_positions[zone_id].x = clamp(zone_positions[zone_id].x, fr_boundary_padding, viewport_rect.size.x - fr_boundary_padding)
-		zone_positions[zone_id].y = clamp(zone_positions[zone_id].y, fr_boundary_padding, viewport_rect.size.y - fr_boundary_padding)
-		zone_nodes[zone_id].position = zone_positions[zone_id]
