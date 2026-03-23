@@ -2,6 +2,7 @@ extends Node2D
 class_name Map
 
 signal map_generated(current_iteration: int, graph_bounding_box: Rect2)
+signal toggle_zoom(toggle: bool)
 
 @export_file("*.json") var map_data_path: String
 @export var zone_radius: float = 50.0

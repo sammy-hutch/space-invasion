@@ -7,6 +7,8 @@ extends Camera2D
 
 @onready var main_node = get_parent() as Node2D
 
+var zoom_enabled: bool = true
+
 func _ready():
 	make_current() 
 	
@@ -15,18 +17,23 @@ func _ready():
 			main_node.adjust_camera.connect(_on_camera_adjust_requested)
 		else:
 			printerr("Main node does not have 'adjust_camera' signal.")
+		if main_node.has_signal("toggle_zoom"):
+			main_node.toggle_zoom.connect(_toggle_zoom)
+		else:
+			printerr("Main node does not have 'toggle zoom' signal")
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var zoom_factor = 1.0
 
-		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
-			zoom_factor = 1.0 + zoom_speed
-			get_viewport().set_input_as_handled()
-		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			zoom_factor = 1.0 - zoom_speed
-			get_viewport().set_input_as_handled()
+		if zoom_enabled:
+			if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+				zoom_factor = 1.0 + zoom_speed
+				get_viewport().set_input_as_handled()
+			elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+				zoom_factor = 1.0 - zoom_speed
+				get_viewport().set_input_as_handled()
 
 		if zoom_factor != 1.0:
 			var mouse_world_pos_before_zoom = get_global_mouse_position()
@@ -56,3 +63,7 @@ func _on_camera_adjust_requested(bounding_box: Rect2):
 	zoom = zoom.clamp(Vector2(min_zoom, min_zoom), Vector2(max_zoom, max_zoom))
 	
 	position = bounding_box.get_center()
+
+func _toggle_zoom(toggle: bool):
+	print("camera received toggle instruction: %s" % str(toggle))
+	zoom_enabled = toggle

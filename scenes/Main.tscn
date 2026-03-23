@@ -7,5 +7,4 @@
 script = ExtResource("1_rvslj")
 
 [node name="Camera2D" type="Camera2D" parent="."]
-anchor_mode = 0
 script = ExtResource("2_rvslj")

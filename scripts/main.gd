@@ -6,6 +6,7 @@ extends Node2D
 @onready var camera_2d: Camera2D = $Camera2D
 
 signal adjust_camera(viewport_size: Rect2)
+signal toggle_zoom(toggle: bool)
 
 var config_screen: Node
 var map: Node
@@ -24,6 +25,8 @@ func _load_map_config_screen():
 	if config_screen:
 		add_child(config_screen)
 		config_screen.map_configured.connect(_on_map_configured)
+		config_screen.screen_loaded.connect(_on_screen_loaded)
+		config_screen.toggle_zoom.connect(_toggle_zoom)
 	else:
 		push_error("Failed to instantiate MapConfigScreen.")
 
@@ -33,6 +36,7 @@ func _load_map():
 	if map:
 		add_child(map)
 		map.map_generated.connect(_on_map_generated)
+		map.toggle_zoom.connect(_toggle_zoom)
 	else:
 		push_error("Failed to instantiate MapGenerator")
 
@@ -53,9 +57,19 @@ func _run_map_generator(map_layout: Dictionary):
 
 ###### SIGNAL CALLBACKS ######
 
+## Toggles zoom by accepting bool value (true = zoom allowed)
+func _toggle_zoom(toggle: bool):
+	toggle_zoom.emit(toggle)
+
 ## Recieves signal from map_config_screen child scene, prompting generation of map in map scene.
 func _on_map_configured(map_layout: Dictionary):
 	_run_map_generator(map_layout)
+
+## Recieves signal from any child node prompting adjustment of camera to match new screen parameters
+func _on_screen_loaded(screen_rect: Rect2):
+	print("Received 'screen_loaded' signal from config screen")
+	print("screen rect: ", screen_rect)
+	adjust_camera.emit(screen_rect)
 
 ## Receives signal from map child scene
 func _on_map_generated(current_iteration: int, graph_bounding_box: Rect2):

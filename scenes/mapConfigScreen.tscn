@@ -13,7 +13,6 @@ script = ExtResource("1_dlrev")
 map_styles_path = "res://data/map_styles.json"
 
 [node name="MainVBox" type="VBoxContainer" parent="."]
-custom_minimum_size = Vector2(300, 600)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -23,6 +22,7 @@ grow_vertical = 2
 theme_override_constants/separation = 10
 
 [node name="TopSectionHBox" type="HBoxContainer" parent="MainVBox"]
+custom_minimum_size = Vector2(300, 600)
 layout_mode = 2
 size_flags_vertical = 3
 

@@ -2,6 +2,8 @@ extends Control
 class_name MapConfigScreen
 
 signal map_configured(map_layout: Dictionary)
+signal screen_loaded(screen_rect: Rect2)
+signal toggle_zoom(toggle: bool)
 
 @export_file("*.json") var map_styles_path: String
 @export_dir var available_sectors_directory: String = "res://resources/sectors/"
@@ -50,6 +52,12 @@ func _ready() -> void:
 		_on_sector_count_selection_list_item_selected(0)
 	
 	_update_map_layout_grid()
+	
+	await get_tree().process_frame
+	var screen_global_rect: Rect2 = _get_overall_bounding_rect(self)
+	screen_loaded.emit(screen_global_rect)
+	
+	toggle_zoom.emit(false)
 
 
 ###### LOAD DATA FUNCTIONS ######
@@ -101,6 +109,7 @@ func _setup_map_style_selection_list():
 func _setup_sector_count_list():
 	for sector_count in _available_sector_counts:
 		var item_idx = sector_count_selection_list.add_item(sector_count)
+		print("sector count added: ", sector_count)
 
 func _update_map_layout_grid():
 	# clear existing settings
@@ -135,6 +144,32 @@ func _get_cell_at_position(position: Vector2) -> MapGridCell:
 	return null
 
 
+###### HELPER FUNCTIONS ######
+
+## helper function for finding full extent of scene size
+func _get_overall_bounding_rect(node: Control) -> Rect2:
+	var combined_rect: Rect2
+	var is_first_visible_element = true
+	
+	if node.visible:
+		combined_rect = node.get_global_rect()
+		is_first_visible_element = false
+	
+	for child in node.get_children():
+		if child.visible:
+			if child is Control:
+				var child_rect = _get_overall_bounding_rect(child)
+				
+				if child_rect.size.x > 0 or child_rect.size.y > 0:
+					if is_first_visible_element:
+						combined_rect = child_rect
+						is_first_visible_element = false
+					else:
+						combined_rect = combined_rect.merge(child_rect)
+	
+	return combined_rect
+
+
 ###### SIGNAL CALLBACKS ######
 
 func _on_sector_selection_list_item_selected(index: int):
@@ -152,13 +187,13 @@ func _on_map_style_selection_list_item_selected(index: int):
 	_update_map_layout_grid()
 
 func _on_sector_count_selection_list_item_selected(index: int):
-	if index <= 0 and index < _available_sector_counts.size():
+	if index >= 0 and index < _available_sector_counts.size():
 		_selected_sector_count = _available_sector_counts[index]
-		print("selected map style: ", _selected_sector_count)
+		print("selected sector count: ", _selected_sector_count)
 	else:
 		_selected_sector_count = _available_sector_counts[0]
+		print("else condition")
 	_update_map_layout_grid()
-		
 
 func _on_map_grid_cell_clicked(position: Vector2):
 	var cell = _get_cell_at_position(position)
@@ -186,6 +221,7 @@ func _on_generate_map_button_pressed():
 	if _map_layout_data.is_empty():
 		print("Warning: No sectors placed. Generating an empty map.")
 	
+	toggle_zoom.emit(true)
 	map_configured.emit(_map_layout_data)
 	print(_map_layout_data)
 	print("Map configuration emitted. Configuration screen will now close.")
