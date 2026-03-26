@@ -13,7 +13,6 @@ map_config_screen.gd:
     - standard: boards face back-to-back where possible, try to form as condensed a shape as possible
     - border: boards line up in single file, all facing same way
     - frontier: boards line up in single file but alternate which way they face
-- can only select each sector once
 sector scenes:
 - load info from maps.json
 - are they necessary?

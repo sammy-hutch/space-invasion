@@ -23,6 +23,8 @@ var _selected_sector_data: SectorData = null
 var _selected_map_style: String = ""
 var _selected_sector_count: String = "1"
 var _map_layout_data: Dictionary = {}
+var _used_sector_ids: Array[String] = []
+
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -32,6 +34,8 @@ func _ready() -> void:
 	_setup_sector_selection_list()
 	_setup_map_style_selection_list()
 	_setup_sector_count_list()
+	
+	_update_sector_selection_list_item_states()
 	
 	sector_selection_list.item_selected.connect(_on_sector_selection_list_item_selected)
 	map_style_selection_list.item_selected.connect(_on_map_style_selection_list_item_selected)
@@ -169,6 +173,21 @@ func _get_overall_bounding_rect(node: Control) -> Rect2:
 	
 	return combined_rect
 
+## helper function to update sector selection list
+func _update_sector_selection_list_item_states():
+	for i in range(_available_sector_resources.size()):
+		var sector_data: SectorData = _available_sector_resources[i]
+		var is_used = _used_sector_ids.has(sector_data.sector_id)
+		
+		sector_selection_list.set_item_disabled(i, is_used)
+		
+		if is_used:
+			sector_selection_list.set_item_custom_bg_color(i, Color.DIM_GRAY)
+			sector_selection_list.set_item_custom_fg_color(i, Color.DARK_RED)
+		else:
+			sector_selection_list.set_item_custom_bg_color(i, Color.LIGHT_GRAY)
+			sector_selection_list.set_item_custom_fg_color(i, Color.GREEN)
+
 
 ###### SIGNAL CALLBACKS ######
 
@@ -198,23 +217,50 @@ func _on_sector_count_selection_list_item_selected(index: int):
 func _on_map_grid_cell_clicked(position: Vector2):
 	var cell = _get_cell_at_position(position)
 	if not cell: return
-	
+
+	# If a sector already exists in the position, erase it and try to place a new one
 	if _map_layout_data.has(position):
+		var old_sector_data: SectorData = _map_layout_data[position]
 		_map_layout_data.erase(position)
 		cell.assigned_sector_data = null
-		print("Removed sector at ", position)
+		_used_sector_ids.erase(old_sector_data.sector_id)
+		print("Removed sector '%s' at %s" % [old_sector_data.sector_id, position])
+		
+		# If a new sector is currently selected, try to place it
+		if _selected_sector_data:
+			if _used_sector_ids.has(_selected_sector_data.sector_id):
+				print("Error: Sector '%s' is already placed on the map. Please select an unused sector." % _selected_sector_data.sector_id)
+			else:
+				_map_layout_data[position] = _selected_sector_data
+				cell.assigned_sector_data = _selected_sector_data
+				_used_sector_ids.append(_selected_sector_data.sector_id)
+				print("Replaced with '%s' at %s" % [_selected_sector_data.sector_id, position])
+		
+		_update_sector_selection_list_item_states()
+		
+	# place a new sector in empty cell if one is selected
 	elif _selected_sector_data:
+		if _used_sector_ids.has(_selected_sector_data.sector_id):
+			print("Error: Sector '%s' is already placed on the map. Please select an unused sector." % _selected_sector_data.sector_id)
+			return
+		
 		_map_layout_data[position] = _selected_sector_data
 		cell.assigned_sector_data = _selected_sector_data
+		_used_sector_ids.append(_selected_sector_data.sector_id)
+		_update_sector_selection_list_item_states()
 		print("Placed '%s' at %s" % [_selected_sector_data.sector_id, position])
+	
 	else:
 		print("No sector selected to place.")
 
+
 func _on_clear_map_button_pressed():
 	_map_layout_data.clear()
+	_used_sector_ids.clear()
 	for child in map_layout_grid_container.get_children():
 		if child is MapGridCell:
 			child.assigned_sector_data = null
+	_update_sector_selection_list_item_states()
 	print("Map layout cleared.")
 
 func _on_generate_map_button_pressed():
