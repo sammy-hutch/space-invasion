@@ -12,36 +12,55 @@
 				"connections": ["A3", "RimA2"]
 			},
 			"A1": {
+				"type": "legendary",
 				"connections": ["A2", "A4", "A5", "A6", "RimA1"],
 				"positions": ["NW"]
 			},
 			"A2": {
+				"type": "cultural",
+				"name": "Doc",
 				"connections": ["A1", "A3", "A4", "RimA2"],
-				"positions": ["W"]
+				"positions": ["W"],
+				"starting_units": ["capital", "garrison"]
 			},
 			"A3": {
+				"type": "industrial",
 				"connections": ["A2", "A4", "RimA3"],
-				"positions": ["SW"]
+				"positions": ["SW"],
+				"starting_units": ["garrison", "garrison"]
 			},
 			"A4": {
+				"type": "hazardous",
+				"name": "A-45b",
 				"connections": ["A1", "A2", "A3", "A5"],
-				"positions": ["S"]
+				"positions": ["S"],
+				"starting_units": ["corruption"]
 			},
 			"A5": {
+				"type": "cultural",
+				"name": "Waypoint",
 				"connections": ["A1", "A4", "A6", "A7", "A8"],
 				"positions": ["S"]
 			},
 			"A6": {
+				"type": "legendary",
+				"name": "Jason's Cradle",
 				"connections": ["A1", "A5", "A8"],
-				"positions": ["N"]
+				"positions": ["N"],
+				"starting_units": ["garrison"]
 			},
 			"A7": {
+				"type": "hazardous",
 				"connections": ["A5", "A8"],
-				"positions": ["E", "SE"]
+				"positions": ["E", "SE"],
+				"starting_units": ["garrison", "garrison"]
 			},
 			"A8": {
+				"type": "industrial",
+				"name": "Terra",
 				"connections": ["A5", "A6", "A7"],
-				"positions": ["NE"]
+				"positions": ["NE"],
+				"starting_units": ["factory"]
 			}
 		}
 	},
@@ -58,36 +77,53 @@
 				"connections": ["B3", "RimB2"]
 			},
 			"B1": {
+				"type": "cultural",
 				"connections": ["B2", "B4", "B5", "B6", "RimB1"],
-				"positions": ["NW"]
+				"positions": ["NW"],
+				"starting_units": ["garrison"]
 			},
 			"B2": {
+				"type": "legendary",
 				"connections": ["B1", "B3", "B4", "RimB2"],
-				"positions": ["W"]
+				"positions": ["W"],
+				"starting_units": ["capital"]
 			},
 			"B3": {
+				"type": "hazardous",
 				"connections": ["B2", "B4", "RimB3"],
-				"positions": ["SW"]
+				"positions": ["SW"],
+				"starting_units": ["garrison", "garrison"]
 			},
 			"B4": {
+				"type": "industrial",
+				"name": "Betelgeuse IV",
 				"connections": ["B1", "B2", "B3", "B5", "B7"],
-				"positions": ["S"]
+				"positions": ["S"],
+				"starting_units": ["corruption"]
 			},
 			"B5": {
+				"type": "hazardous",
+				"name": "Circero",
 				"connections": ["B1", "B4", "B6", "B7"],
 				"positions": ["C"]
 			},
 			"B6": {
+				"type": "cultural",
 				"connections": ["B1", "B5", "B7", "B8"],
-				"positions": ["N"]
+				"positions": ["N"],
+				"starting_units": ["factory"]
 			},
 			"B7": {
+				"type": "legendary",
 				"connections": ["B4", "B5", "B6", "B8"],
-				"positions": ["SE", "E"]
+				"positions": ["SE", "E"],
+				"starting_units": ["garrison"]
 			},
 			"B8": {
+				"type": "industrial",
 				"connections": ["B6", "B7"],
-				"positions": ["NE"]
+				"positions": ["NE"],
+				"starting_units": ["garrison", "garrison"]
 			}
 		}
 	},
@@ -104,34 +140,49 @@
 				"connections": ["C3", "RimC2"]
 			},
 			"C1": {
+				"type": "industrial",
+				"name": "Drax",
 				"connections": ["C2", "C5", "C6", "RimC1"],
-				"positions": ["NW"]
+				"positions": ["NW"],
+				"starting_units": ["garrison"]
 			},
 			"C2": {
+				"type": "hazardous",
 				"connections": ["C1", "C3", "C4", "C5", "RimC2"],
-				"positions": ["W"]
+				"positions": ["W"],
+				"starting_units": ["capital"]
 			},
 			"C3": {
+				"type": "legendary",
 				"connections": ["C2", "C4", "RimC3"],
-				"positions": ["SW"]
+				"positions": ["SW"],
+				"starting_units": ["garrison", "garrison"]
 			},
 			"C4": {
+				"type": "industrial",
 				"connections": ["C2", "C3", "C5", "C7"],
 				"positions": ["S", "SE"]
 			},
 			"C5": {
+				"type": "cultural",
 				"connections": ["C1", "C2", "C3", "C4", "C6", "C7"],
-				"positions": ["C"]
+				"positions": ["C"],
+				"starting_units": ["garrison", "garrison", "corruption"]
 			},
 			"C6": {
+				"type": "hazardous",
 				"connections": ["C1", "C5", "C7", "C8"],
-				"positions": ["N"]
+				"positions": ["N"],
+				"starting_units": ["garrison"]
 			},
 			"C7": {
+				"type": "legendary",
 				"connections": ["C4", "C5", "C6", "C8"],
-				"positions": ["E"]
+				"positions": ["E"],
+				"starting_units": ["factory"]
 			},
 			"C8": {
+				"type": "cultural",
 				"connections": ["C6", "C7"],
 				"positions": ["NE"]
 			}
@@ -150,34 +201,47 @@
 				"connections": ["D3", "RimD2"]
 			},
 			"D1": {
+				"type": "cultural",
 				"connections": ["D2", "D5", "D7", "D8", "RimD1"],
-				"positions": ["NW", "N"]
+				"positions": ["NW", "N"],
+				"starting_units": ["garrison", "garrison"]
 			},
 			"D2": {
+				"type": "industrial",
 				"connections": ["D1", "D3", "D4", "D5", "RimD2"],
-				"positions": ["W"]
+				"positions": ["W"],
+				"starting_units": ["capital", "garrison"]
 			},
 			"D3": {
+				"type": "cultural",
 				"connections": ["D2", "D4", "RimD3"],
 				"positions": ["SW"]
 			},
 			"D4": {
+				"type": "hazardous",
 				"connections": ["D2", "D3", "D5", "D6"],
 				"positions": ["S"]
 			},
 			"D5": {
+				"type": "legendary",
 				"connections": ["D1", "D2", "D4", "D6", "D7"],
-				"positions": ["C"]
+				"positions": ["C"],
+				"starting_units": ["corruption", "garrison"]
 			},
 			"D6": {
+				"type": "industrial",
 				"connections": ["D4", "D5", "D7"],
 				"positions": ["SE"]
 			},
 			"D7": {
+				"type": "hazardous",
+				"name": "Inferna",
 				"connections": ["D1", "D5", "D6", "D8"],
-				"positions": ["E"]
+				"positions": ["E"],
+				"starting_units": ["factory", "garrison", "garrison"]
 			},
 			"D8": {
+				"type": "legendary",
 				"connections": ["D1", "D7"],
 				"positions": ["NE"]
 			}
@@ -196,36 +260,53 @@
 				"connections": ["E3", "RimE2"]
 			},
 			"E1": {
+				"type": "hazardous",
+				"name": "Myrphur",
 				"connections": ["E2", "E5", "E7", "RimE1"],
-				"positions": ["NW"]
+				"positions": ["NW"],
+				"starting_units": ["garrison"]
 			},
 			"E2": {
+				"type": "legendary",
 				"connections": ["E1", "E3", "E5", "RimE2"],
-				"positions": ["W"]
+				"positions": ["W"],
+				"starting_units": ["capital"]
 			},
 			"E3": {
+				"type": "industrial",
 				"connections": ["E2", "E4", "E5", "RimE3"],
-				"positions": ["SW"]
+				"positions": ["SW"],
+				"starting_units": ["garrison", "garrison"]
 			},
 			"E4": {
+				"type": "cultural",
+				"name": "New Corpus",
 				"connections": ["E3", "E5", "E6", "E7"],
-				"positions": ["S"]
+				"positions": ["S"],
+				"starting_units": ["corruption"]
 			},
 			"E5": {
+				"type": "legendary",
 				"connections": ["E1", "E2", "E3", "E4", "E7"],
-				"positions": ["C"]
+				"positions": ["C"],
+				"starting_units": ["garrison"]
 			},
 			"E6": {
+				"type": "hazardous",
 				"connections": ["E4", "E7", "E8"],
 				"positions": ["SE"]
 			},
 			"E7": {
+				"type": "industrial",
 				"connections": ["E1", "E4", "E5", "E6", "E8"],
-				"positions": ["N"]
+				"positions": ["N"],
+				"starting_units": ["factory"]
 			},
 			"E8": {
+				"type": "cultural",
 				"connections": ["E6", "E7"],
-				"positions": ["NE", "E"]
+				"positions": ["NE", "E"],
+				"starting_units": ["garrison", "garrison"]
 			}
 		}
 	},
@@ -242,36 +323,54 @@
 				"connections": ["F3", "RimF2"]
 			},
 			"F1": {
+				"type": "hazardous",
 				"connections": ["F2", "F5", "F6", "RimF1"],
-				"positions": ["NW"]
+				"positions": ["NW"],
+				"starting_units": ["garrison", "garrison"]
 			},
 			"F2": {
+				"type": "industrial",
+				"name": "Nexus III",
 				"connections": ["F1", "F3", "F4", "F5", "RimF2"],
-				"positions": ["W"]
+				"positions": ["W"],
+				"starting_units": ["capital"]
 			},
 			"F3": {
+				"type": "cultural",
+				"name": "Arakk-ashhasp",
 				"connections": ["F2", "F4", "RimF3"],
-				"positions": ["SW"]
+				"positions": ["SW"],
+				"starting_units": ["garrison"]
 			},
 			"F4": {
+				"type": "legendary",
 				"connections": ["F2", "F3", "F5", "F7", "F8"],
-				"positions": ["S"]
+				"positions": ["S"],
+				"starting_units": ["corruption"]
 			},
 			"F5": {
+				"type": "industrial",
+				"name": "Zabrov 7",
 				"connections": ["F1", "F2", "F4", "F6", "F8"],
-				"positions": ["C"]
+				"positions": ["C"],
+				"starting_units": ["garrison"]
 			},
 			"F6": {
+				"type": "legendary",
 				"connections": ["F1", "F5", "F8"],
-				"positions": ["N"]
+				"positions": ["N"],
+				"starting_units": ["garrison", "garrison"]
 			},
 			"F7": {
+				"type": "cultural",
 				"connections": ["F4", "F8"],
 				"positions": ["SE"]
 			},
 			"F8": {
+				"type": "hazardous",
 				"connections": ["F4", "F5", "F6", "F7"],
-				"positions": ["NE", "N"]
+				"positions": ["NE", "N"],
+				"starting_units": ["factory"]
 			}
 		}
 	},
@@ -288,36 +387,53 @@
 				"connections": ["G3", "RimG2"]
 			},
 			"G1": {
+				"type": "legendary",
+				"name": "Ajax",
 				"connections": ["G2", "G6", "RimG1"],
-				"positions": ["NW"]
+				"positions": ["NW"],
+				"starting_units": ["garrison", "garrison"]
 			},
 			"G2": {
+				"type": "cultural",
+				"name": "The Silver Seas",
 				"connections": ["G1", "G3", "G4", "G5", "G6", "RimG2"],
-				"positions": ["W"]
+				"positions": ["W"],
+				"starting_units": ["capital"]
 			},
 			"G3": {
+				"type": "hazardous",
 				"connections": ["G2", "G4", "RimG3"],
-				"positions": ["SW"]
+				"positions": ["SW"],
+				"starting_units": ["garrison"]
 			},
 			"G4": {
+				"type": "cultural",
 				"connections": ["G2", "G3", "G5", "G7"],
-				"positions": ["S"]
+				"positions": ["S"],
+				"starting_units": ["garrison"]
 			},
 			"G5": {
+				"type": "hazardous",
 				"connections": ["G2", "G4", "G6", "G7", "G8"],
-				"positions": ["C"]
+				"positions": ["C"],
+				"starting_units": ["corruption"]
 			},
 			"G6": {
+				"type": "industrial",
 				"connections": ["G1", "G2", "G5", "G8"],
 				"positions": ["N"]
 			},
 			"G7": {
+				"type": "industrial",
 				"connections": ["G4", "G5", "G8"],
-				"positions": ["SE", "E"]
+				"positions": ["SE", "E"],
+				"starting_units": ["garrison", "garrison"]
 			},
 			"G8": {
+				"type": "legendary",
 				"connections": ["G5", "G6", "G7"],
-				"positions": ["NE", "E"]
+				"positions": ["NE", "E"],
+				"starting_units": ["factory"]
 			}
 		}
 	},
@@ -334,36 +450,54 @@
 				"connections": ["H3", "RimH2"]
 			},
 			"H1": {
+				"type": "industrial",
 				"connections": ["H2", "H6", "H8", "RimH1"],
-				"positions": ["NW", "N"]
+				"positions": ["NW", "N"],
+				"starting_units": ["garrison"]
 			},
 			"H2": {
+				"type": "hazardous",
 				"connections": ["H1", "H3", "H5", "H6", "RimH2"],
-				"positions": ["W"]
+				"positions": ["W"],
+				"starting_units": ["capital"]
 			},
 			"H3": {
+				"type": "legendary",
 				"connections": ["H2", "H4", "H5", "RimH3"],
-				"positions": ["SW"]
+				"positions": ["SW"],
+				"starting_units": ["garrison"]
 			},
 			"H4": {
+				"type": "legendary",
+				"name": "Otokk-tok uuha",
+				"description": "Named by a visiting Trisahd diplomat, Otokk-tok uuha, 'The Hollow Planet' (Literally: 'The place where roots hang cold') is a stable planetary shell with no core.",
 				"connections": ["H3", "H5", "H7"],
 				"positions": ["S", "SE"]
 			},
 			"H5": {
+				"type": "industrial",
 				"connections": ["H2", "H3", "H4", "H6", "H7"],
-				"positions": ["C"]
+				"positions": ["C"],
+				"starting_units": ["corruption"]
 			},
 			"H6": {
+				"type": "cultural",
+				"name": "Dataplex Megasphere",
 				"connections": ["H1", "H2", "H5", "H7", "H8"],
-				"positions": ["C"]
+				"positions": ["C"],
+				"starting_units": ["garrison", "garrison"]
 			},
 			"H7": {
+				"type": "cultural",
 				"connections": ["H4", "H5", "H6", "H8"],
-				"positions": ["E"]
+				"positions": ["E"],
+				"starting_units": ["factory"]
 			},
 			"H8": {
+				"type": "hazardous",
 				"connections": ["H1", "H6", "H7"],
-				"positions": ["NE"]
+				"positions": ["NE"],
+				"starting_units": ["garrison", "garrison"]
 			}
 		}
 	}
