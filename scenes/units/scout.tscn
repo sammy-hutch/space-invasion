@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://cb3e2byqx3f25"]
+
+[ext_resource type="Texture2D" uid="uid://bxyotg7uexcxj" path="res://resources/sprites/fighter.webp" id="1_6nfry"]
+
+[node name="Scout" type="Node2D"]
+scale = Vector2(0.2, 0.2)
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_6nfry")

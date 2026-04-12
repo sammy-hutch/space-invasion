@@ -5,18 +5,13 @@ signal map_generated(current_iteration: int, graph_bounding_box: Rect2)
 signal toggle_zoom(toggle: bool)
 
 @export_file("*.json") var map_data_path: String
-@export var zone_radius: float = 50.0
 @export var line_width: float = 2.0
 @export var sector_color: Color = Color.GREEN_YELLOW
-@export var zone_color: Color = Color.CORNFLOWER_BLUE
 @export var line_color: Color = Color.WHITE
 @export var sector_label_color: Color = Color.BLACK
-@export var zone_label_color: Color = Color.BLACK
 @export var layout_radius: float = 200.0 # Used for initial random placement
 @export var sector_font: Font
-@export var zone_font: Font
 @export var sector_font_size: int = 20
-@export var zone_font_size: int = 20
 
 # Fruchterman-Reingold Layout parameters
 @export_group("FR Layout Parameters")
@@ -229,11 +224,11 @@ func run_fr_map_build():
 					
 					var zone_node = Node2D.new()
 					zone_node.set_script(ZoneNodeScript)
-					zone_node.name = zone_id_str
+					zone_node.zone_id_str = zone_id_str
+					zone_node.zone_data = sector_data["zones"][zone_id_str]
 					sector_node.add_child(zone_node)
 					zone_nodes[zone_id_str] = zone_node
-
-					zone_node.setup(zone_id_str, zone_radius, zone_color, zone_label_color, zone_font, zone_font_size)
+					zone_node.setup()
 
 					var rand_x = randf_range(-layout_radius, layout_radius)
 					var rand_y = randf_range(-layout_radius, layout_radius)

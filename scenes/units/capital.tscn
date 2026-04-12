@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3 uid="uid://b3d7qixvbxfl3"]
+
+[ext_resource type="Script" uid="uid://c62to88wrfpld" path="res://scripts/units/capital.gd" id="1_p16em"]
+[ext_resource type="Texture2D" uid="uid://u2fpqt66mabo" path="res://resources/sprites/dreadnaught.webp" id="2_l8djy"]
+
+[node name="Capital" type="Node2D"]
+scale = Vector2(0.2, 0.2)
+script = ExtResource("1_p16em")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_l8djy")

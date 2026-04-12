@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://bbe5dsh4mixo5"]
+
+[ext_resource type="Texture2D" uid="uid://crcqy5k2cwmee" path="res://icon.svg" id="1_jomui"]
+
+[node name="Corruption" type="Node2D"]
+scale = Vector2(0.2, 0.2)
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_jomui")

@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://c4nvufhyltv12"]
+
+[ext_resource type="Texture2D" uid="uid://1oc016uufcqd" path="res://resources/sprites/infantry.webp" id="1_pklb8"]
+
+[node name="Garrison" type="Node2D"]
+scale = Vector2(0.2, 0.2)
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_pklb8")

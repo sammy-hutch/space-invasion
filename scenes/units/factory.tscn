@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://dh0acggpdbf0g"]
+
+[ext_resource type="Texture2D" uid="uid://dp1jlubjy0ahf" path="res://resources/sprites/cruiser.webp" id="1_v5j4a"]
+
+[node name="Factory" type="Node2D"]
+scale = Vector2(0.2, 0.2)
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_v5j4a")
