@@ -26,6 +26,7 @@ signal toggle_zoom(toggle: bool)
 var SectorNodeScript = preload("res://scripts/sector_node.gd")
 var ZoneNodeScript = preload("res://scripts/zone_node.gd")
 
+var main: Node
 var map_data: Dictionary = {} # Dict of maps.json data file
 var sector_nodes: Dictionary = {} # Dict of sector_node.gd Node2D objects
 var zone_nodes: Dictionary = {} # Dict of zone_node.gd Node2D objects
@@ -212,7 +213,10 @@ func run_fr_map_build():
 			var sector_node = Node2D.new()
 			sector_node.set_script(SectorNodeScript)
 			sector_node.name = sector_id_str
+			sector_node.main = main
+			sector_node.map = self
 			add_child(sector_node)
+			main.add_to_status_change_signal(sector_node)
 			sector_nodes[sector_id_str] = sector_node
 			sector_node.setup(sector_id_str, sector_color, sector_label_color, sector_font, sector_font_size)
 
@@ -226,7 +230,10 @@ func run_fr_map_build():
 					zone_node.set_script(ZoneNodeScript)
 					zone_node.zone_id_str = zone_id_str
 					zone_node.zone_data = sector_data["zones"][zone_id_str]
+					zone_node.main = main
+					zone_node.map = self
 					sector_node.add_child(zone_node)
+					main.add_to_status_change_signal(zone_node)
 					zone_nodes[zone_id_str] = zone_node
 					zone_node.setup()
 
@@ -421,3 +428,6 @@ func _adjust_node_positions_to_origin(bounding_box: Rect2):
 
 	for zone_id in internal_zone_ids:
 		zone_positions[zone_id] += offset
+
+func _on_status_change(reason):
+	print("map received status change. reason: %s" % reason)

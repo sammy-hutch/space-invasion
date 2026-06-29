@@ -7,6 +7,7 @@ extends Node2D
 
 signal adjust_camera(viewport_size: Rect2)
 signal toggle_zoom(toggle: bool)
+signal status_change(reason: String)
 
 var config_screen: Node
 var map: Node
@@ -16,6 +17,16 @@ func _ready() -> void:
 	_load_map_config_screen()
 	_load_map()
 
+func _input(event):
+	if event.is_action_pressed("ravage_triggered"):
+		print("ravage triggered")
+		status_change.emit("ravage")
+	if event.is_action_pressed("build_triggered"):
+		print("build triggered")
+		status_change.emit("build")
+	if event.is_action_pressed("explore_triggered"):
+		print("explore triggered")
+		status_change.emit("explore")
 
 ###### INSTANTIATE CHILDREN FUNCTIONS ######
 
@@ -35,6 +46,8 @@ func _load_map():
 	map = map_scene.instantiate() as Map
 	if map:
 		add_child(map)
+		map.main = self
+		add_to_status_change_signal(map)
 		map.map_generated.connect(_on_map_generated)
 		map.toggle_zoom.connect(_toggle_zoom)
 	else:
@@ -74,6 +87,12 @@ func _on_screen_loaded(screen_rect: Rect2):
 ## Receives signal from map child scene
 func _on_map_generated(current_iteration: int, graph_bounding_box: Rect2):
 	adjust_camera.emit(graph_bounding_box)
+	status_change.emit("general")
+
+###### SIGNAL FUNCTIONS ######
+func add_to_status_change_signal(node):
+	self.connect("status_change", Callable(node, "_on_status_change"))
+	print("node %s added to status change signal" % node.name)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:

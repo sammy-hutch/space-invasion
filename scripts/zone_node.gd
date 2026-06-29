@@ -18,6 +18,13 @@ var connections: Array = []
 var positions: Array = []
 var starting_units: Array = []
 
+# parent nodes
+var main: Node
+var map: Node
+
+var explorable: bool = false
+var buildable: bool = false
+
 ######  Units Scenes ######
 var capital_scene = preload("res://scenes/units/capital.tscn")
 var corruption_scene = preload("res://scenes/units/corruption.tscn")
@@ -103,7 +110,6 @@ func setup():
 		for unit in starting_units:
 			_add_new_unit_to_zone(unit)
 			
-	
 	queue_redraw()
 
 
@@ -149,3 +155,52 @@ func _draw_unit_labels():
 			var text_pos = unit_map[unit_type]["position"]
 			text_pos += Vector2(-text_size.x/2, -current_font.get_height(unit_font_size)/2)
 			draw_string(current_font, text_pos, label_text, HORIZONTAL_ALIGNMENT_CENTER, -1, unit_font_size, unit_label_color)
+
+###### change functions ######
+func _on_ravage():
+	pass
+
+func _on_build():
+	if buildable:
+		if unit_map["factory"]["count"] > unit_map["capital"]["count"]:
+			_add_new_unit_to_zone("capital")
+		else:
+			_add_new_unit_to_zone("factory")
+
+func _on_explore():
+	if explorable:
+		_add_new_unit_to_zone("scout")
+
+###### status check functions ######
+
+func _on_status_change(reason):
+	print("zone %s received status change. reason: %s" % [name, reason])
+	_check_buildable()
+	_check_explorable()
+	if reason == "ravage":
+		_on_ravage()
+	elif reason == "build":
+		_on_build()
+	elif reason == "explore":
+		_on_explore()
+	queue_redraw()
+
+func _check_buildable():
+	if unit_map["capital"]["count"] > 0 \
+		or unit_map["factory"]["count"] > 0 \
+		or unit_map["scout"]["count"] > 0 :
+		buildable = true
+	else:
+		buildable = false
+
+func _check_explorable():
+	if unit_map["capital"]["count"] > 0 or unit_map["factory"]["count"] > 0:
+		explorable = true
+		return
+	for connecting_zone in connections:
+		var other_zone = map.zone_nodes[connecting_zone]
+		if other_zone.unit_map["capital"]["count"] > 0 \
+			or other_zone.unit_map["factory"]["count"] > 0:
+			explorable = true
+			return
+	explorable = false

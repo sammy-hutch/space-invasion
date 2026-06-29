@@ -6,6 +6,10 @@ var label_color: Color
 var font: Font
 var font_size: int = 20
 
+#parent nodes
+var main: Node
+var map: Node
+
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	queue_redraw()
@@ -35,6 +39,8 @@ func setup(id: String, z_color: Color, l_color: Color, f: Font = null, f_size: i
 	name = "Sector_" + sector_id_str
 	queue_redraw()
 
+func _on_status_change(reason):
+	print("sector %s received status change. reason: %s" % [name, reason])
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
