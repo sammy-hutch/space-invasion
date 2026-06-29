@@ -3,6 +3,7 @@ class_name Map
 
 signal map_generated(current_iteration: int, graph_bounding_box: Rect2)
 signal toggle_zoom(toggle: bool)
+signal phase_changed(current_phase: String)
 
 @export_file("*.json") var map_data_path: String
 @export var line_width: float = 2.0
@@ -40,6 +41,23 @@ var internal_sector_ids: Array = []
 var internal_zone_ids: Array = []
 
 var map_style = "standard"
+
+## Global Vars
+var turn_counter: int = 1
+var current_phase_counter := 0
+var phases = [
+	"preparation",
+	"first strikes",
+	"ravage",
+	"build",
+	"explore",
+	"retaliations"
+]
+var current_phase: String = phases[current_phase_counter]
+var zone_types = ["cultural", "hazardous", "industrial", "legendary"]
+var upcoming_ravage: String = "none .. yet"
+var upcoming_build: String = "none .. yet"
+var upcoming_explore: String = "none .. yet"
 
 # Tuning Tips for FR Parameters
 # - fr_k_factor: higher = wider node spacing, lower = tighter packed nodes. good heuristic: k = sqrt(ViewportArea / NumberOfNodes)
@@ -216,7 +234,7 @@ func run_fr_map_build():
 			sector_node.main = main
 			sector_node.map = self
 			add_child(sector_node)
-			main.add_to_status_change_signal(sector_node)
+			main.add_to_signal_channel(sector_node, "status_change")
 			sector_nodes[sector_id_str] = sector_node
 			sector_node.setup(sector_id_str, sector_color, sector_label_color, sector_font, sector_font_size)
 
@@ -233,7 +251,8 @@ func run_fr_map_build():
 					zone_node.main = main
 					zone_node.map = self
 					sector_node.add_child(zone_node)
-					main.add_to_status_change_signal(zone_node)
+					main.add_to_signal_channel(zone_node, "status_change")
+					main.add_to_signal_channel(zone_node, "phase_change_triggered")
 					zone_nodes[zone_id_str] = zone_node
 					zone_node.setup()
 
@@ -429,5 +448,27 @@ func _adjust_node_positions_to_origin(bounding_box: Rect2):
 	for zone_id in internal_zone_ids:
 		zone_positions[zone_id] += offset
 
+
+###### SIGNALS ######
+
 func _on_status_change(reason):
 	print("map received status change. reason: %s" % reason)
+
+func _on_next_phase_trigger():
+	print("map received next phase trigger")
+	current_phase_counter = (current_phase_counter + 1) % phases.size()
+	current_phase = phases[current_phase_counter]
+	
+	if current_phase == "retaliations":
+		upcoming_ravage = upcoming_build
+		upcoming_build = upcoming_explore
+		upcoming_explore = "Unknown"
+	elif current_phase == "explore":
+		upcoming_explore = zone_types[randi_range(0, zone_types.size()-1)]
+	elif current_phase == "preparation":
+		turn_counter += 1
+	
+	phase_changed.emit(current_phase)
+
+func _on_phase_change_trigger(new_phase):
+	pass

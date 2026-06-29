@@ -8,3 +8,5 @@ script = ExtResource("1_rvslj")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1391630675]
 script = ExtResource("2_rvslj")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=233610688]

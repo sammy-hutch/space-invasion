@@ -171,7 +171,7 @@ func _on_explore():
 	if explorable:
 		_add_new_unit_to_zone("scout")
 
-###### status check functions ######
+###### SIGNALS ######
 
 func _on_status_change(reason):
 	print("zone %s received status change. reason: %s" % [name, reason])
@@ -184,6 +184,11 @@ func _on_status_change(reason):
 	elif reason == "explore":
 		_on_explore()
 	queue_redraw()
+
+func _on_phase_change_trigger(new_phase):
+	pass
+
+###### status check functions ######
 
 func _check_buildable():
 	if unit_map["capital"]["count"] > 0 \

@@ -2,16 +2,20 @@ extends Node2D
 
 @export var map_config_screen_scene: PackedScene = preload("res://scenes/mapConfigScreen.tscn")
 @export var map_scene: PackedScene = preload("res://scenes/map.tscn")
+@export var mapUi_scene = preload("res://scenes/ui/mapUI.tscn")
 
 @onready var camera_2d: Camera2D = $Camera2D
+@onready var canvas_layer: CanvasLayer = $CanvasLayer
 
 signal adjust_camera(viewport_size: Rect2)
 signal toggle_zoom(toggle: bool)
 signal status_change(reason: String)
+signal next_phase_triggered
+signal phase_change_triggered(new_phase)
 
 var config_screen: Node
 var map: Node
-
+var mapUi: Node
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	_load_map_config_screen()
@@ -47,9 +51,12 @@ func _load_map():
 	if map:
 		add_child(map)
 		map.main = self
-		add_to_status_change_signal(map)
+		add_to_signal_channel(map, "status_change")
+		add_to_signal_channel(map, "next_phase_triggered")
+		add_to_signal_channel(map, "phase_change_triggered")
 		map.map_generated.connect(_on_map_generated)
 		map.toggle_zoom.connect(_toggle_zoom)
+		map.phase_changed.connect(_on_phase_changed)
 	else:
 		push_error("Failed to instantiate MapGenerator")
 
@@ -84,15 +91,37 @@ func _on_screen_loaded(screen_rect: Rect2):
 	print("screen rect: ", screen_rect)
 	adjust_camera.emit(screen_rect)
 
+func _on_next_phase_triggered():
+	next_phase_triggered.emit()
+	
+func _on_phase_changed(new_phase):
+	status_change.emit("phase_change")
+	phase_change_triggered.emit(new_phase)
+	
+
 ## Receives signal from map child scene
 func _on_map_generated(current_iteration: int, graph_bounding_box: Rect2):
 	adjust_camera.emit(graph_bounding_box)
+	mapUi = mapUi_scene.instantiate()
+	mapUi.main = self
+	mapUi.map = map
+	mapUi.next_phase.connect(_on_next_phase_triggered)
+	add_to_signal_channel(mapUi, "status_change")
+	add_to_signal_channel(mapUi, "phase_change_triggered")
+	canvas_layer.add_child(mapUi)
 	status_change.emit("general")
 
 ###### SIGNAL FUNCTIONS ######
-func add_to_status_change_signal(node):
-	self.connect("status_change", Callable(node, "_on_status_change"))
-	print("node %s added to status change signal" % node.name)
+func add_to_signal_channel(node, channel):
+	if channel == "status_change":
+		self.connect("status_change", Callable(node, "_on_status_change"))
+		print("node %s added to status change signal" % node.name)
+	elif channel == "next_phase_triggered":
+		self.connect("next_phase_triggered", Callable(node, "_on_next_phase_trigger"))
+		print("node %s added to phase trigger signal" % node.name)
+	elif channel == "phase_change_triggered":
+		self.connect("phase_change_triggered", Callable(node, "_on_phase_change_trigger"))
+		print("node %s added to phase change trigger signal" % node.name)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:

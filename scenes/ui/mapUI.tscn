@@ -1,0 +1,73 @@
+[gd_scene format=3 uid="uid://dtasdw6tbjcse"]
+
+[ext_resource type="Script" uid="uid://cccfpr2kvogee" path="res://scripts/ui/map_ui.gd" id="1_clby6"]
+
+[node name="MapUi" type="Control" unique_id=588608242]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_clby6")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=2069881361]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="TopTab" type="HBoxContainer" parent="VBoxContainer" unique_id=605283794]
+layout_mode = 2
+
+[node name="TurnCounter" type="Label" parent="VBoxContainer/TopTab" unique_id=602953894]
+layout_mode = 2
+text = "Turn: 8"
+
+[node name="CurrentPhase" type="Label" parent="VBoxContainer/TopTab" unique_id=1756169253]
+layout_mode = 2
+text = "Current Phase: none"
+
+[node name="NextPhase" type="Button" parent="VBoxContainer/TopTab" unique_id=1103955484]
+layout_mode = 2
+text = "Next Phase"
+
+[node name="InvaderTrack" type="VBoxContainer" parent="VBoxContainer/TopTab" unique_id=499015886]
+layout_mode = 2
+
+[node name="InvaderTrackTitle" type="Label" parent="VBoxContainer/TopTab/InvaderTrack" unique_id=1260851378]
+layout_mode = 2
+text = "Upcoming Invader Actions"
+
+[node name="InvaderTrackSlots" type="HBoxContainer" parent="VBoxContainer/TopTab/InvaderTrack" unique_id=161553034]
+layout_mode = 2
+
+[node name="RavageSlot" type="VBoxContainer" parent="VBoxContainer/TopTab/InvaderTrack/InvaderTrackSlots" unique_id=87634477]
+layout_mode = 2
+
+[node name="RavageTitle" type="Label" parent="VBoxContainer/TopTab/InvaderTrack/InvaderTrackSlots/RavageSlot" unique_id=97362807]
+layout_mode = 2
+text = "Next Ravage"
+
+[node name="RavageValue" type="Label" parent="VBoxContainer/TopTab/InvaderTrack/InvaderTrackSlots/RavageSlot" unique_id=116707168]
+layout_mode = 2
+text = "none .. yet"
+
+[node name="BuildSlot" type="VBoxContainer" parent="VBoxContainer/TopTab/InvaderTrack/InvaderTrackSlots" unique_id=2079232915]
+layout_mode = 2
+
+[node name="BuildTitle" type="Label" parent="VBoxContainer/TopTab/InvaderTrack/InvaderTrackSlots/BuildSlot" unique_id=1963554064]
+layout_mode = 2
+text = "Next Build"
+
+[node name="BuildValue" type="Label" parent="VBoxContainer/TopTab/InvaderTrack/InvaderTrackSlots/BuildSlot" unique_id=794165379]
+layout_mode = 2
+text = "none .. yet"
+
+[node name="ExploreSlot" type="VBoxContainer" parent="VBoxContainer/TopTab/InvaderTrack/InvaderTrackSlots" unique_id=1141708289]
+layout_mode = 2
+
+[node name="ExploreTitle" type="Label" parent="VBoxContainer/TopTab/InvaderTrack/InvaderTrackSlots/ExploreSlot" unique_id=1377510057]
+layout_mode = 2
+text = "Next Explore"
+
+[node name="ExploreValue" type="Label" parent="VBoxContainer/TopTab/InvaderTrack/InvaderTrackSlots/ExploreSlot" unique_id=572401740]
+layout_mode = 2
+text = "none .. yet"
+
+[connection signal="pressed" from="VBoxContainer/TopTab/NextPhase" to="." method="_on_next_phase_pressed"]
